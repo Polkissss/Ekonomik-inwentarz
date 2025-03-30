@@ -1,0 +1,73 @@
+{% extends "/base.html" %}
+
+{% block content %}
+  <div class="container shadow border border-light-subtle rounded text-center pt-2" style="min-height: 100%; max-height: 150%">
+    <h1><b>Dodaj/Edytuj Model</b></h1>
+    <p class="mb-4">
+      Dodaj, bądź edytuj gotowy model, aby później automatycznie przydzielać dane specyfikacje do urządzeń
+    </p>
+
+    {% if not types %}
+      <div class="alert alert-danger" role="alert">
+        Aby zacząć dodawać modele musisz najpierw utworzyć wpis w specyfikacjach pod tytułem "Typ urządzenia" i dodać do niego jakies wartości.
+        Możesz to zrobić <a href="/edytujSpecyfikacje">tutaj</a>
+      </div>
+    {% else %}
+      <form method="post" class="d-flex flex-column align-items-center rounded pt-3">
+        <div class="input-group mb-3 w-75">
+          <span class="input-group-text fw-bold">Nazwa modelu: </span>
+          <input type="text" class="form-control" aria-label="Username" aria-describedby="basic-addon1">
+        </div>
+        <div class="input-group mb-3 w-75">
+          <span class="input-group-text fw-bold">Typ urządzenia: </span>
+          <select class="form-select">
+            {% for type in types %}
+              <option>{{type}}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div id="allSpecs" class="w-75">
+        </div>
+        <button class="btn btn-outline-primary justify-content-start mb-3" type="button" onclick="addItem()">Dodaj</button>
+      </form>
+    {% endif%}
+
+    <script>
+      var counter = 1
+
+      function addItem() {
+        const formBody = document.getElementById('allSpecs');
+        console.log(formBody)
+
+        const newSpec = document.createElement('div');
+        newSpec.id = "newItem" + counter;
+
+        newSpec.innerHTML = `
+          <div class="input-group mb-3">
+          <select class="form-select">
+            <option>Wybierz nazwe</option>
+          </select>
+          <select class="form-select" disabled>
+            <option>Wybierz wartość</option>
+          </select>
+          <button type="button" onClick="deleteItem(${counter})" class="btn btn-danger">Usuń</button>
+          </div>
+        `;
+
+        formBody.appendChild(newSpec);
+
+        counter++;
+      };
+
+      function deleteItem(identifier) {
+        const element = document.getElementById("newItem" + identifier);
+        if (element) {
+            element.remove();
+        }
+      };
+
+  </script>
+
+  </div>
+
+{% endblock %}

@@ -1,0 +1,79 @@
+{% extends "/base.html" %}
+
+{% block content %}
+  <div class="container shadow border border-light-subtle rounded text-center pt-2" style="min-height: 100%; max-height: 150%">
+    <h1><b>Przeglądaj Modele</b></h1>
+    <p> Lista gotowych modeli dla danego typu urządzeń.
+        Opcje dodawania, usuwania i edytowania gotowych presetów dla danego modelu,
+        ze względu na usprawnienie użytkowania aplikacji
+    </p>
+    <form method="POST">
+      <div class="table-responsive" style="height: 100%; max-height: 600px">
+        <table class="table" style="max-height:50%" id="specsTable">
+          <thead>
+              <tr>
+                <th scope="col" style="width: 15%">Nazwa</th>
+                <th scope="col" style="width: 15%">Producent</th>
+                <th scope="col" style="width: 15%">Typ urządzenia</th>
+                <th scope="col" style="width: 5%">Ilość</th>
+                <th scope="col" style="width: 35%">Nazwy dodanych specyfikacji</th>
+                <th scope="col" style="width: 15%">Akcje</th>
+              </tr>
+            </thead>
+            <tbody class="table-group-divider">
+              <tr>
+                <th scope="row" class="align-middle">Z8 G5</th>
+                <td class="align-middle">HP</td>
+                <td class="align-middle">Stacja robocza</td>
+                <td class="align-middle">3</td>
+                <td class="align-middle">Pamięć RAM, Wejścia VGA, Wejścia HDMI</td>
+                <td class="align-middle">
+                  <button type="submit" class="btn btn-primary">Szczegóły</button>
+                  <button type="submit" class="btn btn-danger">Usuń</button>
+                </td>
+              </tr>
+            </tbody>
+        </table>
+
+<!--        {% if not specs %}-->
+<!--        <div id="infoMissing" class="alert alert-danger">-->
+<!--          <h3>Brak żadnych specyfikacji</h3>-->
+<!--        </div>-->
+<!--        {% endif %}-->
+
+        </div>
+
+      <form method="POST">
+        <button type="submit" name="action" value="add" class="btn btn-primary">Dodaj</button>
+      </form>
+
+    </form>
+  </div>
+
+  <script>
+
+    async function deleteRow(id) {
+         console.log("Prześlij")
+         if (confirm("Czy na pewno chcesz usunąć tę specyfikację?")) {
+           var deleteData = new FormData();
+           deleteData.append("deleteSpec", id)
+
+           try {
+            await fetch("/edytujModele", {
+            method: "POST",
+            body: deleteData })
+           } catch {
+            console.error("Błąd")
+           }
+
+          window.location.replace("/edytujModele")
+        };
+    };
+
+        // Ukrycie komunikatu (jeśli istnieje)
+    const message = document.getElementById('infoMissing');
+    if (message) { message.style.display = "none";}
+    });
+
+  </script>
+{% endblock %}

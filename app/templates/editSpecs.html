@@ -1,0 +1,120 @@
+{% extends "/base.html" %}
+
+{% block content %}
+  <div class="container shadow border border-light-subtle rounded text-center pt-2" style="min-height: 100%; max-height: 150%">
+    <h1><b>Edytuj Specyfikacje</b></h1>
+    <p> Zarządzaniem specyfikacją różnych urządzeń dla poprawności działania specyficznych filtrów.
+        Wszystkie elementy muszą znajdować się w formie listy bez nawiasów <br>
+        np. "data1, data2, data3". W przypadku nie zastosowania sie do zasad mogą wystąpić niespodziewane efekty przy edycji czy dodawaniu.
+    </p>
+    <form method="post">
+      <div class="table-responsive" style="height: 100%; max-height: 600px">
+        <table class="table" style="max-height:50%" id="specsTable">
+          <thead>
+              <tr>
+                <th scope="col">Nazwa</th>
+                <th scope="col">Lista opcji</th>
+                <th scope="col">Akcja</th>
+              </tr>
+            </thead>
+            <tbody class="table-group-divider">
+              {% for item in specs %}
+                <tr>
+                  <td scope="row" class="align-middle" style="width: 35%">
+                    <div class="input-group">
+                      <span class="input-group-text" id="basic-addon3"><b>{{item.name}}</b></span>
+                      <input type="text" class="form-control" aria-describedby="basic-addon3 basic-addon4" name="editName{{item._id}}" placeholder="Edytuj to pole aby zmienić">
+                    </div>
+                  </td>
+                  <td class="align-middle">
+                      <div class="input-group">
+                        <span class="input-group-text"><b>[</b></span>
+                        <input type="text" class="form-control" name="editOptions{{item._id}}" value="{{item.options}}">
+                        <span class="input-group-text"><b>]</b></span>
+                      </div>
+                  </td>
+                  <td class="align-middle" style="width:10%"><button type="button" onclick="deleteRow('{{item._id}}')" class="btn btn-danger">Usuń</button></td>
+                </tr>
+              {% endfor %}
+            </tbody>
+        </table>
+
+        {% if not specs %}
+          <div id="infoMissing" class="alert alert-danger">
+            <h3>Brak żadnych specyfikacji</h3>
+          </div>
+        {% endif %}
+
+        </div>
+      <button type="button" id="addRowBtn" class="btn btn-primary">Dodaj</button>
+      <button type="submit" name="saveAllSpecs" value="1" class="btn btn-success">Zapisz wszytsko</button>
+    </form>
+  </div>
+
+  <script>
+
+
+    var counter = 1;
+
+    async function deleteRow(id) {
+         console.log("Prześlij")
+         if (confirm("Czy na pewno chcesz usunąć tę specyfikację?")) {
+           var deleteData = new FormData();
+           deleteData.append("deleteSpec", id)
+
+           try {
+            await fetch("/edytujSpecyfikacje", {
+            method: "POST",
+            body: deleteData })
+           } catch {
+            console.error("Błąd")
+           }
+
+          window.location.replace("/edytujSpecyfikacje")
+        };
+    };
+
+    // Dodanie nowego wiersza
+    document.getElementById('addRowBtn').addEventListener('click', function() {
+        const tableBody = document.querySelector('#specsTable tbody');
+
+        // Tworzenie nowego wiersza
+        const newRow = document.createElement('tr');
+
+        newRow.innerHTML = `
+            <td scope="row" class="align-middle" style="width: 35%">
+                <div class="input-group">
+                    <input type="text" class="form-control" name="newName` + counter + `" placeholder="Nowa nazwa"></input>
+                </div>
+            </td>
+            <td class="align-middle">
+                <div class="input-group">
+                    <span class="input-group-text"><b>[</b></span>
+                    <input type="text" class="form-control" value="" name=newOptions` + counter + `>
+                    <span class="input-group-text"><b>]</b></span>
+                </div>
+            </td>
+            <td class="align-middle" style="width:10%">
+                <button type="button" class="btn btn-danger removeRowBtn">Usuń</button>
+            </td>
+        `;
+
+        // Dodanie nowego wiersza do tabeli
+        tableBody.appendChild(newRow);
+
+        // Ukrycie komunikatu (jeśli istnieje)
+        const message = document.getElementById('infoMissing');
+        if (message) { message.style.display = "none";}
+
+        // Zwiększenie licznika
+        counter++;
+    });
+
+    // Usunięcie wiersza
+    document.querySelector('#specsTable').addEventListener('click', function(event) {
+        if (event.target.classList.contains('removeRowBtn')) {
+            event.target.closest('tr').remove();
+        }
+    });
+  </script>
+{% endblock %}
