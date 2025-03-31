@@ -7,67 +7,150 @@
       Dodaj, bądź edytuj gotowy model, aby później automatycznie przydzielać dane specyfikacje do urządzeń
     </p>
 
-    {% if not types %}
-      <div class="alert alert-danger" role="alert">
-        Aby zacząć dodawać modele musisz najpierw utworzyć wpis w specyfikacjach pod tytułem "Typ urządzenia" i dodać do niego jakies wartości.
-        Możesz to zrobić <a href="/edytujSpecyfikacje">tutaj</a>
+    {% if not types or not manufacturers %}
+    <div class="d-flex justify-content-center">
+      <div class="alert alert-danger w-75" role="alert">
+        Aby zacząć dodawać modele musisz najpierw utworzyć wpis w specyfikacjach pod tytułem "Typ urządzenia" i "Producent".
+        <br> Możesz to zrobić <a href="/edytujSpecyfikacje">tutaj</a>
       </div>
+    </div>
     {% else %}
-      <form method="post" class="d-flex flex-column align-items-center rounded pt-3">
-        <div class="input-group mb-3 w-75">
+        <div class="d-flex flex-column align-items-center rounded pt-3 overflow-scroll" style="max-height: 600px">
+          <div class="input-group mb-3 w-75">
           <span class="input-group-text fw-bold">Nazwa modelu: </span>
-          <input type="text" class="form-control" aria-label="Username" aria-describedby="basic-addon1">
+          <input type="text" class="form-control" name="modelName">
         </div>
         <div class="input-group mb-3 w-75">
           <span class="input-group-text fw-bold">Typ urządzenia: </span>
-          <select class="form-select">
+          <select class="form-select" name="modelType">
             {% for type in types %}
               <option>{{type}}</option>
             {% endfor %}
           </select>
         </div>
+        <div class="input-group mb-3 w-75">
+          <span class="input-group-text fw-bold">Producent: </span>
+          <select class="form-select" name="modelManufacturer">
+            {% for manufacturer in manufacturers %}
+              <option>{{manufacturer}}</option>
+            {% endfor %}
+          </select>
+        </div>
         <div id="allSpecs" class="w-75">
         </div>
-        <button class="btn btn-outline-primary justify-content-start mb-3" type="button" onclick="addItem()">Dodaj</button>
-      </form>
+        </div>
+        <button class="btn btn-outline-primary justify-content-start mt-2" type="button" onclick="addItem()">Dodaj</button>
+        <button class="btn btn-outline-success justify-content-start mt-2" type="button" onclick="submitForm()">Zapisz</button>
     {% endif%}
 
     <script>
       var counter = 1
+      const specList = JSON.parse('{{ specs | tojson | safe }}');
 
       function addItem() {
-        const formBody = document.getElementById('allSpecs');
-        console.log(formBody)
+    const formBody = document.getElementById('allSpecs');
 
-        const newSpec = document.createElement('div');
-        newSpec.id = "newItem" + counter;
+    const newSpec = document.createElement('div');
+    newSpec.id = "newItem" + counter;
+    newSpec.classList.add("input-group", "mb-3");
 
-        newSpec.innerHTML = `
-          <div class="input-group mb-3">
-          <select class="form-select">
-            <option>Wybierz nazwe</option>
-          </select>
-          <select class="form-select" disabled>
-            <option>Wybierz wartość</option>
-          </select>
-          <button type="button" onClick="deleteItem(${counter})" class="btn btn-danger">Usuń</button>
-          </div>
-        `;
+    // Tworzenie pierwszego selecta (kategoria specyfikacji)
+    const firstSelect = document.createElement("select");
+      firstSelect.name = "itemName" + counter;
+    firstSelect.classList.add("form-select");
 
-        formBody.appendChild(newSpec);
+    // Sprawdzenie, czy specList ma poprawne dane
+    if (specList.length > 0) {
+        firstSelect.innerHTML = specList.map(spec => `<option value="${spec.name}">${spec.name}</option>`).join("");
+    } else {
+        firstSelect.innerHTML = '<option>Brak dostępnych specyfikacji</option>';
+    }
 
-        counter++;
-      };
+    // Tworzenie drugiego selecta (wartości specyfikacji)
+    const secondSelect = document.createElement("select");
+    secondSelect.name = "itemValue" + counter;
+    secondSelect.classList.add("form-select");
 
-      function deleteItem(identifier) {
-        const element = document.getElementById("newItem" + identifier);
-        if (element) {
-            element.remove();
+    // Dodanie event listenera do pierwszego selecta
+    firstSelect.addEventListener("change", function () {
+        const selectedSpec = specList.find(spec => spec.name === firstSelect.value);
+        secondSelect.innerHTML = selectedSpec.options.map(option => `<option>${option}</option>`).join("");
+    });
+
+    const firstSpec = specList[0];
+    if (firstSpec) {
+        firstSelect.value = firstSpec.name;
+        secondSelect.disabled = false;
+        secondSelect.innerHTML = firstSpec.options.map(option => `<option>${option}</option>`).join("");
+    }
+
+    // Przycisk usuwania
+    const deleteButton = document.createElement("button");
+    deleteButton.type = "button";
+    deleteButton.classList.add("btn", "btn-danger");
+    deleteButton.innerText = "Usuń";
+    deleteButton.onclick = function () { deleteItem(newSpec.id); };
+
+    // Dodanie elementów do kontenera
+    newSpec.appendChild(firstSelect);
+    newSpec.appendChild(secondSelect);
+    newSpec.appendChild(deleteButton);
+
+    formBody.appendChild(newSpec);
+    counter++;
+}
+
+function deleteItem(identifier) {
+    const element = document.getElementById(identifier);
+    if (element) {
+        element.remove();
+    }
+}
+
+      function submitForm() {
+    const specData = [];
+    const allSpecs = document.getElementById("allSpecs").children;
+
+    for (let i = 0; i < allSpecs.length; i++) {
+        const firstSelect = allSpecs[i].querySelector("select:nth-child(1)");
+        const secondSelect = allSpecs[i].querySelector("select:nth-child(2)");
+
+        if (firstSelect && secondSelect) {
+            specData.push({
+                name: firstSelect.value,
+                value: secondSelect.value
+            });
         }
-      };
+    }
 
-  </script>
+    // Pobieranie wartości z pól modelu
+    const modelName = document.querySelector("input[name='modelName']").value;
+    const modelType = document.querySelector("select[name='modelType']").value;
+    const modelManufacturer = document.querySelector("select[name='modelManufacturer']").value;
 
+    // Tworzenie JSON-a do wysłania
+    const formData = {
+        name: modelName,
+        device_type: modelType,
+        manufacturer: modelManufacturer,
+        specs: specData
+    };
+
+    // Tworzenie ukrytego formularza
+    const form = document.createElement("form");
+    form.method = "POST";
+    form.action = "/dodajModel";
+
+    const hiddenInput = document.createElement("input");
+    hiddenInput.type = "hidden";
+    hiddenInput.name = "data";
+    hiddenInput.value = JSON.stringify(formData);
+    form.appendChild(hiddenInput);
+
+    document.body.appendChild(form);
+    form.submit();
+}
+    </script>
   </div>
 
 {% endblock %}

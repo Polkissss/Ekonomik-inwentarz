@@ -17,23 +17,23 @@
                 <th scope="col">Akcja</th>
               </tr>
             </thead>
-            <tbody class="table-group-divider">
+            <tbody class="table-group-divider align-middle">
               {% for item in specs %}
                 <tr>
-                  <td scope="row" class="align-middle" style="width: 35%">
+                  <td scope="row" style="width: 35%">
                     <div class="input-group">
                       <span class="input-group-text" id="basic-addon3"><b>{{item.name}}</b></span>
                       <input type="text" class="form-control" aria-describedby="basic-addon3 basic-addon4" name="editName{{item._id}}" placeholder="Edytuj to pole aby zmienić">
                     </div>
                   </td>
-                  <td class="align-middle">
+                  <td>
                       <div class="input-group">
                         <span class="input-group-text"><b>[</b></span>
                         <input type="text" class="form-control" name="editOptions{{item._id}}" value="{{item.options}}">
                         <span class="input-group-text"><b>]</b></span>
                       </div>
                   </td>
-                  <td class="align-middle" style="width:10%"><button type="button" onclick="deleteRow('{{item._id}}')" class="btn btn-danger">Usuń</button></td>
+                  <td style="width:10%"><button type="button" onclick="deleteRow('{{item._id}}')" class="btn btn-danger">Usuń</button></td>
                 </tr>
               {% endfor %}
             </tbody>

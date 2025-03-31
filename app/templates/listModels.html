@@ -7,13 +7,12 @@
         Opcje dodawania, usuwania i edytowania gotowych presetów dla danego modelu,
         ze względu na usprawnienie użytkowania aplikacji
     </p>
-    <form method="POST">
       <div class="table-responsive" style="height: 100%; max-height: 600px">
         <table class="table" style="max-height:50%" id="specsTable">
           <thead>
               <tr>
-                <th scope="col" style="width: 15%">Nazwa</th>
-                <th scope="col" style="width: 15%">Producent</th>
+                <th scope="col" style="width: 20%">Nazwa</th>
+                <th scope="col" style="width: 10%">Producent</th>
                 <th scope="col" style="width: 15%">Typ urządzenia</th>
                 <th scope="col" style="width: 5%">Ilość</th>
                 <th scope="col" style="width: 35%">Nazwy dodanych specyfikacji</th>
@@ -21,59 +20,57 @@
               </tr>
             </thead>
             <tbody class="table-group-divider">
+            {% if not models %}
               <tr>
-                <th scope="row" class="align-middle">Z8 G5</th>
-                <td class="align-middle">HP</td>
-                <td class="align-middle">Stacja robocza</td>
-                <td class="align-middle">3</td>
-                <td class="align-middle">Pamięć RAM, Wejścia VGA, Wejścia HDMI</td>
-                <td class="align-middle">
-                  <button type="submit" class="btn btn-primary">Szczegóły</button>
-                  <button type="submit" class="btn btn-danger">Usuń</button>
+                <td colspan="6">
+                  <div id="infoMissing" class="alert alert-danger">
+                    <h3>Brak żadnych specyfikacji</h3>
+                  </div>
                 </td>
               </tr>
+            {% else %}
+              {% for model in models%}
+                <tr class="align-middle">
+                  <th scope="row">{{model.name}}</th>
+                  <td> {{model.manufacturer}} </td>
+                  <td> {{model.device_type}} </td>
+                  <td> 0 </td>
+                  <td> {{model.names}} </td>
+                  <td><button type="button" onclick="deleteRow('{{model._id}}')" class="btn btn-danger">Usuń</button></td>
+                </tr>
+              {% endfor %}
+            {% endif %}
             </tbody>
         </table>
-
-<!--        {% if not specs %}-->
-<!--        <div id="infoMissing" class="alert alert-danger">-->
-<!--          <h3>Brak żadnych specyfikacji</h3>-->
-<!--        </div>-->
-<!--        {% endif %}-->
 
         </div>
 
       <form method="POST">
-        <button type="submit" name="action" value="add" class="btn btn-primary">Dodaj</button>
+        <button type="submit" name="action" value="add" class="btn btn-primary mt-2">Dodaj nowy model</button>
       </form>
 
-    </form>
   </div>
 
   <script>
 
     async function deleteRow(id) {
          console.log("Prześlij")
-         if (confirm("Czy na pewno chcesz usunąć tę specyfikację?")) {
+         if (confirm("Czy na pewno chcesz usunąć ten model?")) {
            var deleteData = new FormData();
-           deleteData.append("deleteSpec", id)
+           deleteData.append("action", "delete");
+           deleteData.append("deleteModel", id);
 
            try {
-            await fetch("/edytujModele", {
+            await fetch("/listujModele", {
             method: "POST",
             body: deleteData })
            } catch {
             console.error("Błąd")
            }
 
-          window.location.replace("/edytujModele")
+          window.location.replace("/listujModele")
         };
-    };
-
-        // Ukrycie komunikatu (jeśli istnieje)
-    const message = document.getElementById('infoMissing');
-    if (message) { message.style.display = "none";}
-    });
+      };
 
   </script>
 {% endblock %}
