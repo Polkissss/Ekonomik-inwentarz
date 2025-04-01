@@ -44,10 +44,17 @@
     {% endif%}
 
     <script>
-      var counter = 1
-      const specList = JSON.parse('{{ specs | tojson | safe }}');
+      let counter = 1;
+const specList = JSON.parse('{{ specs | tojson | safe }}');
+const existingSpecs = JSON.parse('{{ existingSpecs | tojson | safe }}' || '[]');
 
-      function addItem() {
+document.addEventListener("DOMContentLoaded", function () {
+    if (existingSpecs.length > 0) {
+        existingSpecs.forEach(spec => {addItem(spec.name, spec.value)});
+    }
+});
+
+function addItem(selectedName, selectedValue) {
     const formBody = document.getElementById('allSpecs');
 
     const newSpec = document.createElement('div');
@@ -56,14 +63,24 @@
 
     // Tworzenie pierwszego selecta (kategoria specyfikacji)
     const firstSelect = document.createElement("select");
-      firstSelect.name = "itemName" + counter;
+    firstSelect.name = "itemName" + counter;
     firstSelect.classList.add("form-select");
 
-    // Sprawdzenie, czy specList ma poprawne dane
     if (specList.length > 0) {
-        firstSelect.innerHTML = specList.map(spec => `<option value="${spec.name}">${spec.name}</option>`).join("");
+        specList.forEach(spec => {
+            const option = document.createElement("option");
+            console.log(selectedName)
+            option.value = spec.name;
+            option.textContent = spec.name;
+            if (spec.name === selectedName) {
+                option.selected = true;
+            }
+            firstSelect.appendChild(option);
+        });
     } else {
-        firstSelect.innerHTML = '<option>Brak dostępnych specyfikacji</option>';
+        const option = document.createElement("option");
+        option.textContent = "Brak dostępnych specyfikacji";
+        firstSelect.appendChild(option);
     }
 
     // Tworzenie drugiego selecta (wartości specyfikacji)
@@ -71,17 +88,23 @@
     secondSelect.name = "itemValue" + counter;
     secondSelect.classList.add("form-select");
 
-    // Dodanie event listenera do pierwszego selecta
     firstSelect.addEventListener("change", function () {
         const selectedSpec = specList.find(spec => spec.name === firstSelect.value);
-        secondSelect.innerHTML = selectedSpec.options.map(option => `<option>${option}</option>`).join("");
+        if (selectedSpec) {
+            secondSelect.innerHTML = selectedSpec.options.map(option => `<option>${option}</option>`).join("");
+        }
     });
 
-    const firstSpec = specList[0];
-    if (firstSpec) {
-        firstSelect.value = firstSpec.name;
-        secondSelect.disabled = false;
-        secondSelect.innerHTML = firstSpec.options.map(option => `<option>${option}</option>`).join("");
+    if (selectedName) {
+        firstSelect.value = selectedName;
+        const selectedSpec = specList.find(spec => spec.name === selectedName);
+        if (selectedSpec) {
+            secondSelect.innerHTML = selectedSpec.options.map(option => `<option>${option}</option>`).join("");
+            secondSelect.value = selectedValue;
+        }
+    } else if (specList.length > 0) {
+        firstSelect.value = specList[0].name;
+        secondSelect.innerHTML = specList[0].options.map(option => `<option>${option}</option>`).join("");
     }
 
     // Przycisk usuwania
@@ -107,7 +130,7 @@ function deleteItem(identifier) {
     }
 }
 
-      function submitForm() {
+    function submitForm() {
     const specData = [];
     const allSpecs = document.getElementById("allSpecs").children;
 
@@ -128,6 +151,17 @@ function deleteItem(identifier) {
     const modelType = document.querySelector("select[name='modelType']").value;
     const modelManufacturer = document.querySelector("select[name='modelManufacturer']").value;
 
+    if (existingSpecs.length != 0){
+        var formAction = {
+            action: "update",
+            id: "{{updateID}}"
+        };
+    } else {
+        var formAction = {
+            action: "create"
+        };
+    }
+
     // Tworzenie JSON-a do wysłania
     const formData = {
         name: modelName,
@@ -141,11 +175,17 @@ function deleteItem(identifier) {
     form.method = "POST";
     form.action = "/dodajModel";
 
-    const hiddenInput = document.createElement("input");
-    hiddenInput.type = "hidden";
-    hiddenInput.name = "data";
-    hiddenInput.value = JSON.stringify(formData);
-    form.appendChild(hiddenInput);
+    const hiddenInputData = document.createElement("input");
+    hiddenInputData.type = "hidden";
+    hiddenInputData.name = "data";
+    hiddenInputData.value = JSON.stringify(formData);
+    form.appendChild(hiddenInputData);
+
+    const hiddenInputAction = document.createElement("input");
+    hiddenInputAction.type = "hidden";
+    hiddenInputAction.name = "action";
+    hiddenInputAction.value = JSON.stringify(formAction);
+    form.appendChild(hiddenInputAction);
 
     document.body.appendChild(form);
     form.submit();

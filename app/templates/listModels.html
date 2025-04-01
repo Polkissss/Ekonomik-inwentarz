@@ -36,7 +36,12 @@
                   <td> {{model.device_type}} </td>
                   <td> 0 </td>
                   <td> {{model.names}} </td>
-                  <td><button type="button" onclick="deleteRow('{{model._id}}')" class="btn btn-danger">Usuń</button></td>
+                  <td>
+                    <form method="post">
+                      <button type="submit" name="infoId" value="{{model._id}}" class="btn btn-primary">Szczegóły</button>
+                      <button type="button" onclick="deleteRow('{{model._id}}')" class="btn btn-danger">Usuń</button>
+                      </form>
+                  </td>
                 </tr>
               {% endfor %}
             {% endif %}
