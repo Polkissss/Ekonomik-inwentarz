@@ -18,7 +18,7 @@
               <a class="nav-link fw-bold" href="/">Mapka</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link fw-bold" href="#">Lista urządzeń</a>
+              <a class="nav-link fw-bold" href="/lista">Lista urządzeń</a>
             </li>
             <li class="nav-item">
               <a class="nav-link fw-bold" href="/dodajUrządzenie">Dodaj urządzenie</a>
@@ -30,8 +30,8 @@
 <!--              <a class="nav-link fw-bold" href="/listujModele">Modele urządzeń</a>-->
 <!--            </li>-->
           </ul>
-          <form class="d-flex pe-2 mb-2 mb-lg-0" role="search">
-            <input class="form-control me-2" type="search" placeholder="Szukaj ID urządzenia" aria-label="Search">
+          <form class="d-flex pe-2 mb-2 mb-lg-0" role="search" action="/edytujUrządzenie" method="GET">
+            <input class="form-control me-2" type="search" placeholder="Szukaj ID urządzenia" name="deviceId" aria-label="Search" >
             <button class="btn btn-outline-success fw-bold" type="submit">Szukaj</button>
           </form>
           <form class="d-flex pe-2" role="search" action="{{url_for('identity.logout')}}">

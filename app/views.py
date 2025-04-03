@@ -1,4 +1,8 @@
+import re
 import os
+import json
+from lib2to3.fixes.fix_input import context
+
 from bson import ObjectId
 from flask import render_template, Blueprint, request, url_for, redirect, session
 from app import db, auth
@@ -59,86 +63,6 @@ def EditSpecs(*, context):
 
     return render_template("editSpecs.html", specs = alteredSpecs, username = context['user']['name'])
 
-# @app_blueprint.route("/listujModele", methods = ['POST', 'GET'])
-# @auth.login_required()
-# def ListModels(*, context):
-#
-#     if not db.models.find_one():
-#         allModels = False
-#     else:
-#         allModels = list(db.models.find())
-#
-#         for model in allModels:
-#             model["names"] = ""
-#             listLength = len(model["specs"]) - 1
-#             index = 0
-#             for spec in model["specs"]:
-#                 if index != listLength:
-#                     model["names"] += spec["name"] + ", "
-#                     index += 1
-#                 else:
-#                     model["names"] += spec["name"]
-#
-#
-#
-#     if request.method == "POST":
-#
-#         if request.form.get("infoId"):
-#             infoId = request.form.get("infoId")
-#             return  redirect(url_for("app.AddModels", infoId = infoId))
-#
-#         action = request.form.get("action")
-#
-#         if action == "delete":
-#             deleteID = request.form.get("deleteModel")
-#             db.models.find_one_and_delete({"_id": ObjectId(deleteID)})
-#             return redirect(url_for("app.ListModels"))
-#
-#         if action == "add":
-#             return redirect(url_for("app.AddModels"))
-#
-#     return render_template("listModels.html", models = allModels ,username = context['user']['name'])
-#
-# @app_blueprint.route("/dodajModel", methods = ['POST', 'GET'])
-# @auth.login_required()
-# def AddModels(*, context):
-#
-#     allTypes = db.specs.find_one({"name": "Typ urządzenia"})
-#     allManufacturers = db.specs.find_one({"name": "Producent"})
-#     allSpecs = list(db.specs.find({"name": {"$nin": ["Typ urządzenia", "Producent"]}}))
-#
-#     currentModel = db.models.find_one({"_id": ObjectId(request.args.get("infoId"))})
-#
-#     if currentModel:
-#         existingSpecs = list(currentModel["specs"])
-#     else:
-#         existingSpecs = []
-#
-#     if not allTypes:
-#         typeList = False
-#     else:
-#         typeList = allTypes["options"]
-#
-#     if not allManufacturers:
-#         manufacturerList = False
-#     else:
-#         manufacturerList = allManufacturers["options"]
-#
-#     if request.method == "POST":
-#         data = json.loads(request.form['data'])
-#         action = json.loads(request.form['action'])
-#         print(data)
-#
-#         if action["action"] == "update":
-#             print(action["id"])
-#             db.models.find_one_and_update({"_id": ObjectId(action["id"])}, {"$set": data})
-#         elif action["action"] == "create":
-#             db.models.insert_one(data)
-#
-#         return redirect(url_for("app.ListModels"))
-#
-#     return render_template("addModels.html", types = typeList, manufacturers = manufacturerList, specs = allSpecs, existingSpecs = existingSpecs, modelInfo = currentModel, updateID = request.args.get("infoId") ,username = context['user']['name'])
-
 @app_blueprint.route("/dodajUrządzenie", methods = ['POST', 'GET'])
 @auth.login_required()
 def AddDevice(*, context):
@@ -146,9 +70,10 @@ def AddDevice(*, context):
 
     if request.method == "POST":
         deviceData = request.form.to_dict()
+        deviceData["specs"] = json.loads(deviceData["specs"])
 
         if deviceData["room"] == "brak":
-            print("Wyłapuje on nie ma pokoju!!")
+            deviceData["room"] = {"name": "brak"}
 
         addedDevice = db.devices.insert_one(deviceData)
 
@@ -173,27 +98,36 @@ def AddDevice(*, context):
 @app_blueprint.route("/edytujUrządzenie", methods = ['POST', 'GET'])
 @auth.login_required()
 def EditDevice(*, context):
-    allSpecs = list(db.specs.find())
-    editedDevice = db.devices.find_one({"_id": ObjectId("67ec17b41b81666915348110")})
-    deviceSpecs = editedDevice["specs"]
-    editedDevice["_id"] = str(editedDevice["_id"])
 
     if request.method == "POST":
+
+        if request.form.get("delete"):
+            db.devices.find_one_and_delete({"_id": ObjectId(request.form["delete"])})
+            if os.path.exists(UPLOAD_DEVICE_PHOTO + "/device" + str(request.form["delete"]) + ".png"):
+                os.remove(UPLOAD_DEVICE_PHOTO + "/device" + str(request.form["delete"]) + ".png")
+            return redirect(url_for("app.ListDevices"))
+
         deviceData = request.form.to_dict()
+        deviceData["specs"] = json.loads(deviceData["specs"])
+        deviceId = ObjectId(deviceData["_id"])
+        deviceData.pop("_id")
 
         if deviceData["room"] == "brak":
-            print("Wyłapuje on nie ma pokoju!!")
+            deviceData["room"] = {"name": "brak"}
 
-        addedDevice = db.devices.insert_one(deviceData)
+        db.devices.find_one_and_update({"_id": deviceId}, {"$set": deviceData})
 
         if request.files:
+            if os.path.exists(UPLOAD_DEVICE_PHOTO + "/device" + str(deviceId) + ".png"):
+                os.remove(UPLOAD_DEVICE_PHOTO + "/device" + str(deviceId) + ".png")
+
             file = request.files["image"]
-            filename = "device" + str(addedDevice.inserted_id)
+            filename = "device" + str(deviceId) + ".png"
 
             file_ext = file.filename.rsplit(".", 1)[-1].lower()
 
             if file_ext in ["jpg", "jpeg", "png", "gif"]:
-                save_path = os.path.join(UPLOAD_DEVICE_PHOTO, filename + "." + file_ext)
+                save_path = os.path.join(UPLOAD_DEVICE_PHOTO, filename)
             else:
                 print("plik niepoprawny")
                 return redirect(url_for("app.EditDevice"))
@@ -202,6 +136,79 @@ def EditDevice(*, context):
 
         return redirect(url_for("app.EditDevice"))
 
-    return render_template("editDevice.html", specs = allSpecs, deviceSpecs = deviceSpecs, editedDevice = editedDevice ,username = context['user']['name'])
+    if request.args.get("deviceId"):
+        deviceId = request.args.get("deviceId")
+        allSpecs = list(db.specs.find())
+        editedDevice = db.devices.find_one({"_id": ObjectId(deviceId)})
+        deviceSpecs = editedDevice["specs"]
+        editedDevice["_id"] = str(editedDevice["_id"])
+        if editedDevice:
+            return render_template("editDevice.html", specs = allSpecs, deviceSpecs = deviceSpecs, editedDevice = editedDevice ,username = context['user']['name'])
+    return redirect(url_for("app.ListRedirect"))
 
 TESTID = "67ebe689a72b651250d0ba44"
+
+@app_blueprint.route("/urządzenia", methods = ['POST', 'GET'])
+@auth.login_required()
+def ListDevices(*, context):
+    roomName = request.args.get('roomName')
+
+    # Pobierz parametry paginacji
+    page = request.args.get('page', 1, type=int)
+    per_page = 14
+    skip = (page - 1) * per_page
+
+    # Budujemy query
+    query = {}
+
+    # Filtracja po nazwie pokoju (z GET)
+    if roomName:
+        query["room.name"] = roomName
+
+    # Filtracja z formularza POST
+    if request.method == "POST":
+        filter_specs = json.loads(request.form.get("filterSpecs", "{}"))
+        filter_name = request.form.get("filterName", "").strip()
+
+        # Filtrowanie po nazwie urządzenia
+        if filter_name:
+            query["name"] = {"$regex": f".*{re.escape(filter_name)}.*", "$options": "i"}
+
+        # Filtrowanie po specyfikacjach
+        if filter_specs:
+            for field, value in filter_specs.items():
+                str_value = str(value)
+                query[f"specs.{field}"] = {
+                    "$regex": f"^{re.escape(str_value)}$",
+                    "$options": "i"
+                }
+
+    # Pobierz urządzenia z uwzględnieniem wszystkich filtrów
+    allDevices = list(db.devices.find(query).skip(skip).limit(per_page))
+
+    # Oblicz całkowitą liczbę dokumentów Z UWZGLĘDNIENIEM FILTRÓW
+    total = db.devices.count_documents(query)
+    total_pages = (total + per_page - 1) // per_page
+
+    # Konwersja ObjectId na string
+    for device in allDevices:
+        device["_id"] = str(device["_id"])
+
+    allSpecs = list(db.specs.find())
+
+    return render_template("listDevices.html",
+                           devices=allDevices,
+                           page=page,
+                           total_pages=total_pages,
+                           specs=allSpecs,
+                           username=context['user']['name'],
+                           current_filters={
+                               'roomName': roomName,
+                               'filterName': request.form.get("filterName", ""),
+                               'filterSpecs': request.form.get("filterSpecs", "{}")
+                           })
+
+@app_blueprint.route("/lista/", methods = ['POST', 'GET'])
+@app_blueprint.route("/lista/<roomName>", methods = ['POST', 'GET'])
+def ListRedirect(roomName=None):
+    return redirect(url_for("app.ListDevices", roomName=roomName))

@@ -19,6 +19,11 @@
                 <label for="floatingTextarea">Komentarz do urządzenia</label>
 
                 <div class="input-group mb-1 mt-2">
+                    <span class="input-group-text fw-bold">Nazwa: </span>
+                    <input type="text" class="form-control" name="deviceName" placeholder="Wprowadź nazwę inwentaryzacyjną urządzenia">
+                </div>
+
+                <div class="input-group mb-1 mt-2">
                     <span class="input-group-text fw-bold">Pomieszczenie:</span>
                     <select class="form-select" name="roomInfo">
                         <option value="brak" selected>Brak konkretnego pomieszczenia</option>
@@ -67,8 +72,10 @@
                     Czy jesteś pewien, że chcesz dodać urządzenie do bazy?
                 </div>
                 <div class="d-flex modal-footer justify-content-center">
-                    <button type="button" class="btn btn-danger w-25" data-bs-dismiss="modal">Nie</button>
-                    <button type="button" class="btn btn-success w-25" onclick="submitForm()">Tak</button>
+                    <form class="d-flex w-100">
+                        <button type="button" class="btn btn-danger w-25 mx-auto" data-bs-dismiss="modal">Nie</button>
+                        <button type="button" class="btn btn-success w-25 mx-auto" onclick="submitForm()">Tak</button>
+                    </form>
                 </div>
             </div>
         </div>
@@ -159,29 +166,30 @@ function addItem() {
         element.remove();
     }
 }
+
     async function submitForm() {
-    const specData = [];
+
+    const specData = {};
     const allSpecs = document.getElementById("allSpecs").children;
 
     for (let i = 0; i < allSpecs.length; i++) {
         const firstSelect = allSpecs[i].querySelector("select:nth-child(1)");
         const secondSelect = allSpecs[i].querySelector("select:nth-child(2)");
 
-        if (firstSelect && secondSelect) {
-            specData.push({
-                name: firstSelect.value,
-                value: secondSelect.value
-            });
+        if (firstSelect && secondSelect && firstSelect.value) {
+            specData[firstSelect.value] = secondSelect.value; // Klucz: wartość
         }
     }
 
     // Pobieranie wartości z pól modelu
     const deviceDesc = document.querySelector("textarea[name='deviceDesc']").value;
     const roomInfo = document.querySelector("select[name='roomInfo']").value;
+    const deviceName = document.querySelector("input[name='deviceName']").value;
 
     // Tworzenie JSON-a do wysłania
     const formData = new FormData();
 
+    formData.append("name", deviceName);
     formData.append("description", deviceDesc);
     formData.append("room", roomInfo);
     formData.append("specs", JSON.stringify(specData));
@@ -198,7 +206,7 @@ function addItem() {
     body: formData
     })
 
-    window.location.replace("/dodajUrządzenie")
+    window.location.replace("/lista")
 }
 </script>
 
