@@ -5,13 +5,13 @@
     <h1 class="mt-2"><b>Dodaj urządzenie</b></h1>
 
     <div class="row mt-3">
-        <!-- Lewa kolumna z obrazkiem -->
+        <!-- Left column with device image -->
         <div class="col-md-6 col-12 d-flex justify-content-center align-items-center">
             <img id="selectedImage" src="{{ url_for('static', filename='images/devicePhotos/device' + editedDevice._id + '.png') }}"
-                 alt="obraz urządzenia" class="img-fluid" style="max-width: 50%;" />
+                 alt="Brak obrazu urządzenia, bądź nie można znaleść" class="img-fluid" style="max-width: 50%;" />
         </div>
 
-        <!-- Prawa kolumna z formularzem -->
+        <!-- Right column with form -->
         <div class="col-md-6 col-12">
             <div class="form-floating">
                 <textarea class="form-control mt-2 mb-1" placeholder="Opis urządzenia" name="deviceDesc" id="floatingTextarea"
@@ -20,13 +20,19 @@
 
                 <div class="input-group mb-1 mt-2">
                     <span class="input-group-text fw-bold">Nazwa: </span>
-                    <input type="text" class="form-control" name="deviceName" placeholder="Wprowadź nazwę inwentaryzacyjną urządzenia" value="{{editedDevice.name}}">
+                    <input disabled type="text" class="form-control" id="deviceName" placeholder="Wprowadź nazwę inwentaryzacyjną urządzenia" value="{{editedDevice.name}}">
                 </div>
 
                 <div class="input-group mb-1 mt-2">
                     <span class="input-group-text fw-bold">Pomieszczenie:</span>
                     <select class="form-select" name="roomInfo">
-                        <option value="brak" selected>Brak konkretnego pomieszczenia</option>
+                        {% for room in rooms %}
+                            {% if room.name == editedDevice.room.name %}
+                                <option value="{{room.name}}" selected="selected">{{room.name}}</option>
+                            {% else %}
+                                <option value="{{room.name}}">{{room.name}}</option>
+                            {% endif %}
+                        {% endfor %}
                     </select>
                 </div>
 
@@ -35,23 +41,39 @@
                     <input type="text" class="form-control" name="_id" value="{{ editedDevice._id }}" disabled>
                 </div>
 
-                <div class="d-flex justify-content-start mt-2">
-                    <div class="btn btn-primary btn-rounded">
-                        <label class="form-label text-white p-0 m-1" for="customFile1">Dodaj obraz</label>
-                        <input type="file" class="form-control d-none" id="customFile1"
+            <div class="d-flex justify-content-start mt-2 align-items-center gap-2">
+                <div>
+                    <label class="btn btn-primary btn-rounded px-3 py-2 m-0" for="photo">
+                        Dodaj obraz
+                        <input type="file" class="form-control d-none" id="photo"
                                onchange="displaySelectedImage(event, 'selectedImage')" />
-                    </div>
+                    </label>
                 </div>
+
+                {% if editedDevice.private == "False"%}
+                    <a href="{{ url_for('static', filename='images/barCodes/barcode' + editedDevice._id + '.svg') }}"
+                       target="_blank"
+                       class="btn btn-success btn-rounded px-3 py-2">
+                       Otwórz kod
+                    </a>
+
+                    <a href="{{ url_for('static', filename='images/barCodes/barcode' + editedDevice._id + '.svg') }}"
+                       class="btn btn-success btn-rounded px-3 py-2" download="{{editedDevice.name}}">
+                       Pobierz kod
+                    </a>
+                {% endif %}
+            </div>
+
             </div>
         </div>
     </div>
 
-    <!-- Sekcja allSpecs -->
+    <!-- Specifications section -->
     <div id="allSpecs" class="d-flex overflow-scroll align-items-center flex-column mt-3"
          style="clear: both; margin: 0 auto; max-height: 310px;">
     </div>
 
-    <!-- Przyciski -->
+    <!-- Action buttons -->
     <div class="d-flex justify-content-center gap-2 mt-2 mb-3">
         <button class="btn btn-primary" type="button" onclick="addItem()">Dodaj informacje</button>
         <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#updateConfirm">
@@ -62,7 +84,7 @@
         </button>
     </div>
 
-    <!-- Modal -->
+    <!-- Update confirmation modal -->
     <div class="modal fade" id="updateConfirm" data-bs-backdrop="static" data-bs-keyboard="false"
          tabindex="-1" aria-labelledby="editLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
@@ -84,7 +106,7 @@
         </div>
     </div>
 
-        <!-- Modal -->
+    <!-- Delete confirmation modal -->
     <div class="modal fade" id="deleteConfirm" data-bs-backdrop="static" data-bs-keyboard="false"
          tabindex="-1" aria-labelledby="deleteLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
@@ -108,17 +130,58 @@
 </div>
 
 <script>
+    // Global variables
     let counter = 1;
     const specList = JSON.parse('{{ specs | tojson | safe }}');
     const deviceSpecs = {{ deviceSpecs | tojson | safe }};
     var fileInput = "";
 
+    // Initialize the form with existing device specifications
     document.addEventListener("DOMContentLoaded", function () {
         Object.entries(deviceSpecs).forEach(([key, value]) => {
             addItem(key, value);
         });
     });
 
+    /**
+     * Downloads the barcode for a device
+     * @param {string} deviceId - The ID of the device
+     */
+    async function downloadBarcode(deviceId) {
+        try {
+            // 1. Fetch SVG from server
+            const response = await fetch(`/static/images/barCodes/barcode${deviceId}.svg`);
+            if (!response.ok) throw new Error('Nie znaleziono pliku');
+            const svgData = await response.text();
+
+            // 2. Create Blob object
+            const blob = new Blob([svgData], {type: 'image/svg+xml'});
+            const url = URL.createObjectURL(blob);
+
+            // 3. Create temporary link and simulate click
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `barcode_${deviceId}.svg`;
+            document.body.appendChild(a);
+            a.click();
+
+            // 4. Cleanup
+            setTimeout(() => {
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }, 100);
+
+        } catch (error) {
+            console.error('Błąd pobierania:', error);
+            alert('Nie udało się pobrać kodu kreskowego');
+        }
+    }
+
+    /**
+     * Displays the selected image in the preview
+     * @param {Event} event - The file input change event
+     * @param {string} elementId - The ID of the image element to update
+     */
     function displaySelectedImage(event, elementId) {
         const selectedImage = document.getElementById(elementId);
         fileInput = event.target;
@@ -134,124 +197,150 @@
         }
     }
 
-function addItem(selectedName, selectedValue) {
-    const formBody = document.getElementById('allSpecs');
+    /**
+     * Adds a new specification item to the form
+     * @param {string} selectedName - The pre-selected specification name
+     * @param {string} selectedValue - The pre-selected specification value
+     */
+    function addItem(selectedName, selectedValue) {
+        const formBody = document.getElementById('allSpecs');
 
-    const newSpec = document.createElement('div');
-    newSpec.id = "newItem" + counter;
-    newSpec.classList.add("input-group", "mb-3", "w-75");
+        const newSpec = document.createElement('div');
+        newSpec.id = "newItem" + counter;
+        newSpec.classList.add("input-group", "mb-3", "w-75");
 
-    // Tworzenie pierwszego selecta (kategoria specyfikacji)
-    const firstSelect = document.createElement("select");
-    firstSelect.name = "itemName" + counter;
-    firstSelect.classList.add("form-select");
+        // Create first select (specification category)
+        const firstSelect = document.createElement("select");
+        firstSelect.name = "itemName" + counter;
+        firstSelect.classList.add("form-select");
 
-    if (specList.length > 0) {
-        specList.forEach(spec => {
+        if (specList.length > 0) {
+            specList.forEach(spec => {
+                const option = document.createElement("option");
+                console.log(selectedName)
+                option.value = spec.name;
+                option.textContent = spec.name;
+                if (spec.name === selectedName) {
+                    option.selected = true;
+                }
+                firstSelect.appendChild(option);
+            });
+        } else {
             const option = document.createElement("option");
-            console.log(selectedName)
-            option.value = spec.name;
-            option.textContent = spec.name;
-            if (spec.name === selectedName) {
-                option.selected = true;
-            }
+            option.textContent = "Brak dostępnych specyfikacji";
             firstSelect.appendChild(option);
+        }
+
+        // Create second select (specification values)
+        const secondSelect = document.createElement("select");
+        secondSelect.name = "itemValue" + counter;
+        secondSelect.classList.add("form-select");
+
+        // Update values when category changes
+        firstSelect.addEventListener("change", function () {
+            const selectedSpec = specList.find(spec => spec.name === firstSelect.value);
+            if (selectedSpec) {
+                secondSelect.innerHTML = selectedSpec.options.map(option => `<option>${option}</option>`).join("");
+            }
         });
-    } else {
-        const option = document.createElement("option");
-        option.textContent = "Brak dostępnych specyfikacji";
-        firstSelect.appendChild(option);
+
+        // Set initial values if provided
+        if (selectedName) {
+            firstSelect.value = selectedName;
+            const selectedSpec = specList.find(spec => spec.name === selectedName);
+            if (selectedSpec) {
+                secondSelect.innerHTML = selectedSpec.options.map(option => `<option>${option}</option>`).join("");
+                secondSelect.value = selectedValue;
+            }
+        } else if (specList.length > 0) {
+            firstSelect.value = specList[0].name;
+            secondSelect.innerHTML = specList[0].options.map(option => `<option>${option}</option>`).join("");
+        }
+
+        // Create delete button
+        const deleteButton = document.createElement("button");
+        deleteButton.type = "button";
+        deleteButton.classList.add("btn", "btn-danger");
+        deleteButton.innerText = "Usuń";
+        deleteButton.onclick = function () { deleteItem(newSpec.id); };
+
+        // Add elements to container
+        newSpec.appendChild(firstSelect);
+        newSpec.appendChild(secondSelect);
+        newSpec.appendChild(deleteButton);
+
+        formBody.appendChild(newSpec);
+        counter++;
     }
 
-    // Tworzenie drugiego selecta (wartości specyfikacji)
-    const secondSelect = document.createElement("select");
-    secondSelect.name = "itemValue" + counter;
-    secondSelect.classList.add("form-select");
-
-    firstSelect.addEventListener("change", function () {
-        const selectedSpec = specList.find(spec => spec.name === firstSelect.value);
-        if (selectedSpec) {
-            secondSelect.innerHTML = selectedSpec.options.map(option => `<option>${option}</option>`).join("");
-        }
-    });
-
-    if (selectedName) {
-        firstSelect.value = selectedName;
-        const selectedSpec = specList.find(spec => spec.name === selectedName);
-        if (selectedSpec) {
-            secondSelect.innerHTML = selectedSpec.options.map(option => `<option>${option}</option>`).join("");
-            secondSelect.value = selectedValue;
-        }
-    } else if (specList.length > 0) {
-        firstSelect.value = specList[0].name;
-        secondSelect.innerHTML = specList[0].options.map(option => `<option>${option}</option>`).join("");
-    }
-
-    // Przycisk usuwania
-    const deleteButton = document.createElement("button");
-    deleteButton.type = "button";
-    deleteButton.classList.add("btn", "btn-danger");
-    deleteButton.innerText = "Usuń";
-    deleteButton.onclick = function () { deleteItem(newSpec.id); };
-
-    // Dodanie elementów do kontenera
-    newSpec.appendChild(firstSelect);
-    newSpec.appendChild(secondSelect);
-    newSpec.appendChild(deleteButton);
-
-    formBody.appendChild(newSpec);
-    counter++;
-}
-
+    /**
+     * Removes a specification item from the form
+     * @param {string} identifier - The ID of the item to remove
+     */
     function deleteItem(identifier) {
-    const element = document.getElementById(identifier);
-    if (element) {
-        element.remove();
-    }
-}
-    async function submitForm() {
-
-    const specData = {};
-    const allSpecs = document.getElementById("allSpecs").children;
-
-    for (let i = 0; i < allSpecs.length; i++) {
-        const firstSelect = allSpecs[i].querySelector("select:nth-child(1)");
-        const secondSelect = allSpecs[i].querySelector("select:nth-child(2)");
-
-        if (firstSelect && secondSelect && firstSelect.value) {
-            specData[firstSelect.value] = secondSelect.value; // Klucz: wartość
+        const element = document.getElementById(identifier);
+        if (element) {
+            element.remove();
         }
     }
 
-    // Pobieranie wartości z pól modelu
-    const deviceDesc = document.querySelector("textarea[name='deviceDesc']").value;
-    const roomInfo = document.querySelector("select[name='roomInfo']").value;
-    const deviceName = document.querySelector("input[name='deviceName']").value;
-    const deviceId = document.querySelector("input[name='_id']").value;
+    /**
+     * Submits the form with all collected data
+     */
+    async function submitForm() {
+        // Collect specification data
+        const specData = {};
+        const allSpecs = document.getElementById("allSpecs").children;
 
-    // Tworzenie JSON-a do wysłania
-    const formData = new FormData();
+        for (let i = 0; i < allSpecs.length; i++) {
+            const firstSelect = allSpecs[i].querySelector("select:nth-child(1)");
+            const secondSelect = allSpecs[i].querySelector("select:nth-child(2)");
 
-    formData.append("description", deviceDesc);
-    formData.append("room", roomInfo);
-    formData.append("specs", JSON.stringify(specData));
-    formData.append("name", deviceName);
-    formData.append("_id", deviceId);
+            if (firstSelect && secondSelect && firstSelect.value) {
+                specData[firstSelect.value] = secondSelect.value; // Key: value
+            }
+        }
 
-    if (fileInput != "") {
-        formData.append("image", fileInput.files[0]);
+        // Get values from form fields
+        const deviceDesc = document.querySelector("textarea[name='deviceDesc']").value;
+        const roomInfo = document.querySelector("select[name='roomInfo']").value;
+        const deviceName = document.getElementById('deviceName').value;
+        const deviceId = document.querySelector("input[name='_id']").value;
+
+        // Create form dynamically
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '/edytujUrządzenie';
+        form.enctype = 'multipart/form-data'; // important for file uploads
+
+        // Helper function to add hidden fields
+        function addField(name, value) {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = name;
+            input.value = value;
+            form.appendChild(input);
+        }
+
+        // Add all fields to form
+        addField("_id", deviceId);
+        addField("name", deviceName);
+        addField("description", deviceDesc);
+        addField("room", roomInfo);
+        addField("specs", JSON.stringify(specData));
+
+        // Add file if exists
+        if (fileInput != "" && fileInput.files.length > 0) {
+            // Clone file input since we can't move existing one
+            const fileInputClone = fileInput.cloneNode();
+            fileInputClone.name = "image";
+            form.appendChild(fileInputClone);
+        }
+
+        // Add form to body and submit
+        document.body.appendChild(form);
+        form.submit();
     }
-    console.log(formData)
-
-    // Tworzenie ukrytego formularza
-
-    await fetch("/edytujUrządzenie", { //
-    method: "POST",
-    body: formData
-    })
-
-    window.location.replace("/lista")
-}
 </script>
 
 </div>

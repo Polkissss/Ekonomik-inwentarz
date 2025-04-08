@@ -10,3 +10,4 @@ REDIRECT_URI = os.getenv("REDIRECT_URI")
 SECRET_KEY = os.getenv("SECRET_KEY")
 MONGO_URI = os.getenv("DB_URL")
 SESSION_TYPE = "filesystem"
+LOGOUT_URL = "/logout"

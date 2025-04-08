@@ -1,4 +1,4 @@
-from flask import Flask, render_template
+from flask import Flask
 from flask_pymongo import PyMongo
 from identity.flask import Auth
 import app.app_config as app_config

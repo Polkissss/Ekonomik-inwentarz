@@ -1,21 +1,27 @@
+
 {% extends "/base.html" %}
 
 {% block content %}
 
 <div class="container-fluid">
     <div class="row">
-        <!-- Lista urządzeń - szeroka sekcja -->
-        <div class="col-lg-7 col-md-6 col-sm-11 shadow border border-light-subtle rounded text-center pt-2 mx-auto">
+
+        <!-- Device List - Main Section -->
+        <!-- Using responsive column classes to adjust layout on different screens -->
+        <div class="col-xl-7 col-lg-8 col-md-12 col-sm-12 shadow border border-light-subtle rounded text-center pt-2 mx-auto mb-3">
             <h1><b>Lista urządzeń</b></h1>
-            <div style="max-height: 700px;">
+
+            <!-- Responsive table container with vertical scroll -->
+            <div class="table-responsive" style="max-height: 700px; overflow-y: auto;">
                 <table class="table table-sm text-wrap align-middle">
-                    <thead class="table-light">
+                    <thead class="table-light sticky-top">
                         <tr>
-                            <th scope="col" style="width:20%">ID</th>
-                            <th scope="col" style="width:20%">Nazwa</th>
-                            <th scope="col" style="width:10%">Pomieszczenie</th>
-                            <th scope="col" style="width:30%">Opiekun</th>
-                            <th scope="col" style="width:20%">Akcja</th>
+                            <th scope="col" class="col-md-2 col-sm-3">ID</th>
+                            <th scope="col" class="col-md-2 col-sm-3">Nazwa</th>
+                            <th scope="col" class="col-md-2 col-sm-2">Pomieszczenie</th>
+                            <th scope="col" class="col-md-3 col-sm-2">Opiekun</th>
+                            <th scope="col" class="col-md-3 col-sm-2">Prywatny</th>
+                            <th scope="col" class="col-md-2 col-sm-2">Akcje</th>
                         </tr>
                     </thead>
                     <tbody class="table-group-divider">
@@ -23,7 +29,7 @@
                         <tr>
                             <td colspan="6">
                                 <div id="infoMissing" class="alert alert-danger">
-                                    <h5>Brak urządzeń w bazie, bądź o podanych filtrach. Jeśli chcesz dodać urządzenie przejdź do zakładki <a class="link-danger" href="{{url_for('app.AddDevice')}}">dodaj urządzenie</a></h5>
+                                    <h5>Brak urządeń w bazie danych, bądź z podanymi filtrami.</h5>
                                 </div>
                             </td>
                         </tr>
@@ -33,7 +39,8 @@
                             <td>{{ device._id }}</td>
                             <td>{{ device.name }}</td>
                             <td>{{ device.room.name }}</td>
-                            <td>Tymczasowy brak</td>
+                            <td>{% if device.room.keeper != "brak" and device.room.keeper %}{{device.room.keeper}}{% else %}Bez podanego pracownika{% endif %}</td>
+                            <td>{% if device.private == "True" %}Tak{% else %}Nie{% endif %}</td>
                             <td>
                                 <form action="/edytujUrządzenie" method="get">
                                     <button class="btn btn-primary" value="{{ device._id }}" name="deviceId" type="submit">Szczegóły</button>
@@ -45,54 +52,70 @@
                     </tbody>
                 </table>
             </div>
-            <div class="d-flex justify-content-center">
-            <nav aria-label="Page navigation" >
-    <ul class="pagination">
-        {% if page > 1 %}
-        <li class="page-item">
-            <a class="page-link"
-               href="?page={{ page-1 }}&roomName={{ current_filters.roomName|default('', true) }}">
-                Previous
-            </a>
-        </li>
-        {% endif %}
+            <!-- Pagination -->
+            <div class="d-flex justify-content-center mt-3">
+                <nav aria-label="Page navigation">
+                    <ul class="pagination pagination-sm flex-wrap"> <!-- flex-wrap for small screens -->
+                        {% if page > 1 %}
+                        <li class="page-item">
+                            <a class="page-link"
+                               href="?page={{ page-1 }}&roomName={{ current_filters.roomName|default('', true) }}">
+                                Previous
+                            </a>
+                        </li>
+                        {% endif %}
 
-        {% for p in range(1, total_pages+1) %}
-        <li class="page-item {% if p == page %}active{% endif %}">
-            <a class="page-link"
-               href="?page={{ p }}&roomName={{ current_filters.roomName|default('', true) }}">
-                {{ p }}
-            </a>
-        </li>
-        {% endfor %}
+                        {% for p in range(1, total_pages+1) %}
+                        <li class="page-item {% if p == page %}active{% endif %}">
+                            <a class="page-link"
+                               href="?page={{ p }}&roomName={{ current_filters.roomName|default('', true) }}">
+                                {{ p }}
+                            </a>
+                        </li>
+                        {% endfor %}
 
-        {% if page < total_pages %}
-        <li class="page-item">
-            <a class="page-link"
-               href="?page={{ page+1 }}&roomName={{ current_filters.roomName|default('', true) }}">
-                Next
-            </a>
-        </li>
-        {% endif %}
-    </ul>
-</nav>
-                </div>
+                        {% if page < total_pages %}
+                        <li class="page-item">
+                            <a class="page-link"
+                               href="?page={{ page+1 }}&roomName={{ current_filters.roomName|default('', true) }}">
+                                Next
+                            </a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            </div>
         </div>
 
-        <!-- Filtr - węższa sekcja -->
-        <div class="col-lg-4 col-md-5 col-sm-12 shadow border border-light-subtle rounded text-center pt-2 mx-auto" id="filterData">
-            <h2 class="mb-3"><b>Filtruj</b></h2>
+        <!-- Filter Section - Adjusts based on screen size -->
+        <div class="col-xl-4 col-lg-4 col-md-12 col-sm-12 shadow border border-light-subtle rounded text-center pt-2 mx-auto" id="filterData">
+            <h2 class="mb-3"><b>Filtrowanie</b></h2>
+
+            <!-- Search input -->
             <div class="input-group mb-3">
               <input type="text" class="form-control" placeholder="Nazwa urządzenia" id="filterName">
-              <button class="btn btn-success" type="button" id="filterDataButton">Wyszukaj i filtruj</button>
+              <button class="btn btn-success" type="button" id="filterDataButton">
+                <span class="d-none d-sm-inline">Filtruj i szukaj</span> <!-- Hide text on xs screens -->
+                <span class="d-inline d-sm-none"><i class="bi bi-search"></i></span> <!-- Show icon on xs screens -->
+              </button>
             </div>
-            {% if not specs %}
-            <div class="alert alert-danger">
-                <h5>Brak żadnych specyficznych opcji filtrowania. Dodaj je w zakładce <a class="link-danger" href="{{url_for('app.EditSpecs')}}">Specyfikacje</a></h5>
-            </div>
-            {% else %}
-                <div class="border rounded mx-auto p-2 mb-3 overflow-y-scroll" style="max-height: 700px">
-                <h5 class="mb-3 text-start">Opcje specyfikacji:</h5>
+
+            <!-- Filter options -->
+            <div class="border rounded mx-auto p-2 mb-3 overflow-y-auto" style="max-height: 700px">
+                <h5 class="mb-3 text-start">Opcje szczegółów:</h5>
+
+                <!-- Room filter -->
+                <div class="input-group mb-3">
+                      <label class="input-group-text" for="room">Pomieszczenie</label>
+                      <select class="form-select" id="room">
+                        <option value="" selected="selected">Każdy</option>
+                            {% for room in rooms %}
+                              <option value="{{room.name}}">{{room.name}}</option>
+                            {% endfor %}
+                      </select>
+                </div>
+
+                <!-- Dynamic specification filters -->
                 {% for spec in specs %}
                     <div class="input-group mb-3">
                       <label class="input-group-text" for="spec{{spec.name}}">{{spec.name}}</label>
@@ -104,34 +127,39 @@
                       </select>
                     </div>
                 {% endfor %}
-                </div>
-            {% endif%}
+            </div>
         </div>
     </div>
 </div>
 
 <script>
-
+    /**
+     * Filter button click handler
+     * Collects all filter values and submits the form
+     */
     document.getElementById('filterDataButton').addEventListener('click', function() {
         const filterData = {};
 
-        // Pobieramy wszystkie selecty w sekcji filtrów
+        // Get all filter selects
         const filterSelects = document.querySelectorAll('#filterData select.form-select');
 
+        // Process each filter select
         filterSelects.forEach(select => {
             const selectedValue = select.value;
-            const filterName = select.previousElementSibling.textContent; // Pobiera nazwę filtra z labela
+            const filterName = select.previousElementSibling.textContent.trim(); // Get filter name from label
 
-            // Dodajemy tylko jeśli użytkownik wybrał coś innego niż "Każdy"
-            if (selectedValue && selectedValue !== "Każdy") {
+            // Only add if user selected something other than "Any"
+            if (selectedValue && selectedValue !== "Any") {
                 filterData[filterName] = isNaN(selectedValue) ? selectedValue : Number(selectedValue);
             }
         });
 
+        // Create and submit form dynamically
         const form = document.createElement("form");
         form.method = "POST";
         form.action = "{{url_for('app.ListDevices')}}";
 
+        // Add device name filter if provided
         const filterName = document.getElementById("filterName").value;
         if (filterName != ""){
             const hiddenFilterName = document.createElement("input");
@@ -141,6 +169,7 @@
             form.appendChild(hiddenFilterName);
         }
 
+        // Add specification filters
         const hiddenFilterSpecs = document.createElement("input");
         hiddenFilterSpecs.type = "hidden";
         hiddenFilterSpecs.name = "filterSpecs";
@@ -148,10 +177,7 @@
         form.appendChild(hiddenFilterSpecs);
 
         document.body.appendChild(form);
-        console.log(filterData)
         form.submit();
-    })
-
-
+    });
 </script>
 {% endblock %}

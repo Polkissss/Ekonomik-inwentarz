@@ -39,7 +39,7 @@
                                 </div>
                             </td>
                             <td style="width:10%">
-                                <button type="button" onclick="deleteRow('{{ item._id }}')" class="btn btn-danger">Usuń</button>
+                                <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteConfirm" data-bs-name="{{ item.name }}" data-bs-identifier="{{ item._id }}">Usuń</button>
                             </td>
                         </tr>
                     {% endfor %}
@@ -53,44 +53,66 @@
             {% endif %}
         </div>
 
-        <!-- Przyciski -->
+        <!-- Action buttons -->
         <div class="d-flex justify-content-center gap-2 mt-2 mb-2">
             <button type="button" id="addRowBtn" class="btn btn-primary">Dodaj</button>
             <button type="submit" name="saveAllSpecs" value="1" class="btn btn-success">Zapisz wszystko</button>
         </div>
     </form>
+
+    <!-- Delete confirmation modal -->
+    <div class="modal fade" id="deleteConfirm" data-bs-backdrop="static" data-bs-keyboard="false"
+         tabindex="-1" aria-labelledby="deleteLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="deleteLabel">Usuwanie</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p id="modal-message"></p>
+                </div>
+                <div class="d-flex modal-footer justify-content-center">
+                    <form method="post" class="d-flex w-100">
+                        <button type="button" class="btn btn-danger w-25 mx-auto" data-bs-dismiss="modal">Nie</button>
+                        <button type="submit" class="btn btn-success w-25 mx-auto" id="modalConfirmButton" name="delete" value="">Tak</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
-  <script>
-
-
+<script>
+    // Counter for new row IDs
     var counter = 1;
 
-    async function deleteRow(id) {
-         console.log("Prześlij")
-         if (confirm("Czy na pewno chcesz usunąć tę specyfikację?")) {
-           var deleteData = new FormData();
-           deleteData.append("deleteSpec", id)
+    // Delete confirmation modal setup
+    const exampleModal = document.getElementById('deleteConfirm')
+    if (exampleModal) {
+        exampleModal.addEventListener('show.bs.modal', event => {
+            // Get button that triggered the modal
+            const button = event.relatedTarget
 
-           try {
-            await fetch("/edytujSpecyfikacje", {
-            method: "POST",
-            body: deleteData })
-           } catch {
-            console.error("Błąd")
-           }
+            // Extract info from data-bs-* attributes
+            const name = button.getAttribute('data-bs-name')
+            const id = button.getAttribute('data-bs-identifier')
 
-          window.location.replace("/edytujSpecyfikacje")
-        };
-    };
+            // Update the modal's content
+            const modalBody = exampleModal.querySelector('#modal-message')
+            const modalConfirm = exampleModal.querySelector('#modalConfirmButton')
 
-    // Dodanie nowego wiersza
+            modalBody.innerHTML = `Czy jesteś pewien, że chcesz usunąć specyfikacje o nazwie: ${name}`
+            modalConfirm.value = `${id}`
+        })
+    }
+
+    // Add new row functionality
     document.getElementById('addRowBtn').addEventListener('click', function() {
         const tableBody = document.querySelector('#specsTable tbody');
 
-        // Tworzenie nowego wiersza
+        // Create new row HTML
         const newRow = document.createElement('tr');
-
         newRow.innerHTML = `
             <td scope="row" class="align-middle" style="width: 35%">
                 <div class="input-group">
@@ -109,22 +131,22 @@
             </td>
         `;
 
-        // Dodanie nowego wiersza do tabeli
+        // Append new row to table
         tableBody.appendChild(newRow);
 
-        // Ukrycie komunikatu (jeśli istnieje)
+        // Hide "no specifications" message if it exists
         const message = document.getElementById('infoMissing');
-        if (message) { message.style.display = "none";}
+        if (message) { message.style.display = "none"; }
 
-        // Zwiększenie licznika
+        // Increment counter for next row
         counter++;
     });
 
-    // Usunięcie wiersza
+    // Remove row functionality
     document.querySelector('#specsTable').addEventListener('click', function(event) {
         if (event.target.classList.contains('removeRowBtn')) {
             event.target.closest('tr').remove();
         }
     });
-  </script>
+</script>
 {% endblock %}

@@ -3,57 +3,71 @@
 {% block content %}
 
 <div class="container-fluid d-flex flex-column flex-lg-row">
-
-    <!-- Lewy panel (Mapa) -->
+    <!-- Left panel (Map) -->
     <div class="col-11 col-lg-7 d-flex align-items-center justify-content-center shadow border border-light-subtle rounded p-3 mx-auto mt-2">
         <object id="mapImage" class="img-fluid" type="image/svg+xml" data="{{ url_for('static', filename='images/maps/suterena.svg')}}" aria-label="Mapka parteru"></object>
-
     </div>
 
-    <!-- Prawy panel (Interaktywna mapka) -->
-    <div class="col-11 col-lg-3 shadow border border-light-subtle rounded p-3 d-flex flex-column mx-auto mt-2">
+    <!-- Right panel (Interactive map controls) -->
+    <div class="col-11 col-lg-4 shadow border border-light-subtle rounded p-3 d-flex flex-column mx-auto mt-2">
         <h1 class="text-center font-weight-bold">Mapka</h1>
         <p class="text-center">
             Interaktywna mapka do wybierania sali. Naciśnij odpowiednie pomieszczenie, aby zostać przekierowanym do listy z odpowiednim filtrem.
         </p>
 
+        <!-- Floor selection navigation tabs -->
         <nav class="nav nav-pills nav-fill mb-3" style="padding-left: 20px;">
             <a class="nav-link active" href="#" onclick="loadMap('{{ url_for('static', filename='images/maps/suterena.svg') }}', this)">Suterena</a>
             <a class="nav-link" href="#" onclick="loadMap('{{ url_for('static', filename='images/maps/parter.svg') }}', this)">Parter</a>
             <a class="nav-link" href="#" onclick="loadMap('{{ url_for('static', filename='images/maps/pierwsze_piętro.svg') }}', this)">Pierwsze Piętro</a>
-            <!-- <a class="nav-link" id="mapImage" href="#" onclick="loadMap('{{ url_for('static', filename='images/maps/drugie_piętro.svg') }}', this)">Drugie_piętro</a> -->
+            <a class="nav-link" href="#" onclick="loadMap('{{ url_for('static', filename='images/maps/drugie_piętro.svg') }}', this)">Drugie piętro</a>
         </nav>
 
- <script>
-        function loadMap(mapFile, element) {
-            const mapImage = document.getElementById('mapImage');
-            mapImage.setAttribute('data', mapFile);
+        <script>
+            /**
+             * Loads a new map SVG file and updates the active tab
+             * @param {string} mapFile - Path to the SVG map file
+             * @param {HTMLElement} element - The clicked navigation element
+             */
+            function loadMap(mapFile, element) {
+                // Update the map image source
+                const mapImage = document.getElementById('mapImage');
+                mapImage.setAttribute('data', mapFile);
 
-            const navLinks = document.querySelectorAll('.nav-link');
-            navLinks.forEach(link => link.classList.remove('active'));
-            element.classList.add('active');
-        }
+                // Update active tab styling
+                const navLinks = document.querySelectorAll('.nav-link');
+                navLinks.forEach(link => link.classList.remove('active'));
+                element.classList.add('active');
+            }
+        </script>
 
-    </script>
-
-        <!-- Tabela -->
+        <!-- Rooms table -->
         <div class="table-responsive flex-grow-1 text-center" style="max-height: 600px">
             <table class="table">
                 <thead class="table-light">
                     <tr>
                         <th scope="col">Nazwa</th>
                         <th scope="col">Opiekun</th>
-                        <th scope="col">Akcja</th>
+                        <th scope="col">Piętro</th>
+                        <th scope="col">Urządzenia</th>
                     </tr>
                 </thead>
                 <tbody class="table-group-divider">
-                    <tr>
-                        <th scope="row" class="align-middle">32</th>
-                        <td class="align-middle">Jan Kowalski</td>
-                        <td class="align-middle">
-                            <button type="submit" class="btn btn-success">Sprawdź urządzenia</button>
-                        </td>
-                    </tr>
+                    {% for room in rooms%}
+                    {% if room.name != "brak" %}
+                        <tr class="align-middle">
+                            <th scope="row"> {{room.name}}</th>
+                            <td>{% if room.keeper != "" and room.keeper%}{{room.keeper}}{%else%}Brak podanego{% endif %}</td>
+                            <td>{{room.floor}}</td>
+                            <td>
+                                <!-- Button to view devices in this room -->
+                                <form action="/lista/{{room.name}}">
+                                    <button type="submit" class="btn btn-success">Sprawdź</button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% endif %}
+                    {% endfor %}
                 </tbody>
             </table>
         </div>
