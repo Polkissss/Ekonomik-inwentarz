@@ -2,13 +2,18 @@
 
 {% block content %}
 <div class="container shadow border border-light-subtle rounded text-center pt-2" style="min-height: 100%; max-height: 150%">
-    <h1 class="mt-2"><b>Dodaj urządzenie</b></h1>
+    <h1 class="mt-2"><b>Szczegóły urządzenia</b></h1>
 
     <div class="row mt-3">
-        <!-- Left column with device image -->
+        <!-- Left column with device image. If it doesn't exist display a placeholder -->
         <div class="col-md-6 col-12 d-flex justify-content-center align-items-center">
-            <img id="selectedImage" src="{{ url_for('static', filename='images/devicePhotos/device' + editedDevice._id + '.png') }}"
-                 alt="Brak obrazu urządzenia, bądź nie można znaleść" class="img-fluid" style="max-width: 50%;" />
+            {% if imageExists %}
+                <img id="selectedImage" src="{{ url_for('static', filename='images/devicePhotos/device' + editedDevice._id + '.png') }}"
+                     alt="obraz urządzenia" class="img-fluid" style="max-width: 50%;" />
+            {% else %}
+                <img id="selectedImage" src="{{ url_for('static', filename='images/placeholder.png') }}"
+                 alt="obraz urządzenia" class="img-fluid" style="max-width: 50%;" />
+            {% endif %}
         </div>
 
         <!-- Right column with form -->
@@ -20,7 +25,7 @@
 
                 <div class="input-group mb-1 mt-2">
                     <span class="input-group-text fw-bold">Nazwa: </span>
-                    <input disabled type="text" class="form-control" id="deviceName" placeholder="Wprowadź nazwę inwentaryzacyjną urządzenia" value="{{editedDevice.name}}">
+                    <input type="text" class="form-control" id="deviceName" placeholder="Wprowadź nazwę inwentaryzacyjną urządzenia" value="{{editedDevice.name}}">
                 </div>
 
                 <div class="input-group mb-1 mt-2">
@@ -38,7 +43,7 @@
 
                 <div class="input-group mb-1 mt-2">
                     <span class="input-group-text fw-bold">ID:</span>
-                    <input type="text" class="form-control" name="_id" value="{{ editedDevice._id }}" disabled>
+                    <input type="text" class="form-control" name="ID" value="{{ editedDevice.ID }}" disabled>
                 </div>
 
             <div class="d-flex justify-content-start mt-2 align-items-center gap-2">
@@ -77,10 +82,10 @@
     <div class="d-flex justify-content-center gap-2 mt-2 mb-3">
         <button class="btn btn-primary" type="button" onclick="addItem()">Dodaj informacje</button>
         <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#updateConfirm">
-            Zapisz
+            Edytuj urządzenie
         </button>
         <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteConfirm">
-            Usuń
+            Usuń urządzenie
         </button>
     </div>
 
@@ -94,7 +99,7 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    Czy jesteś pewien, że chcesz edytować urządzenie o id: {{ editedDevice._id }}
+                    Czy jesteś pewien, że chcesz edytować urządzenie o ID: {{ editedDevice.ID }}
                 </div>
                 <div class="d-flex modal-footer justify-content-center">
                     <form method="post" class="d-flex w-100">
@@ -116,7 +121,7 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    Czy jesteś pewien, że chcesz usunąć urządzenie o id: {{ editedDevice._id }}
+                    Czy jesteś pewien, że chcesz usunąć urządzenie o id: {{ editedDevice.ID }}
                 </div>
                 <div class="d-flex modal-footer justify-content-center">
                     <form method="post" class="d-flex w-100">
@@ -261,7 +266,7 @@
         const deleteButton = document.createElement("button");
         deleteButton.type = "button";
         deleteButton.classList.add("btn", "btn-danger");
-        deleteButton.innerText = "Usuń";
+        deleteButton.innerHTML = "<i class='bi bi-trash'></i>";
         deleteButton.onclick = function () { deleteItem(newSpec.id); };
 
         // Add elements to container
@@ -305,7 +310,8 @@
         const deviceDesc = document.querySelector("textarea[name='deviceDesc']").value;
         const roomInfo = document.querySelector("select[name='roomInfo']").value;
         const deviceName = document.getElementById('deviceName').value;
-        const deviceId = document.querySelector("input[name='_id']").value;
+        const deviceIdVisible = document.querySelector("input[name='ID']").value;
+        const deviceIdHidden = "{{editedDevice._id}}";
 
         // Create form dynamically
         const form = document.createElement('form');
@@ -323,7 +329,8 @@
         }
 
         // Add all fields to form
-        addField("_id", deviceId);
+        addField("_id", deviceIdHidden);
+        addField("ID", deviceIdVisible);
         addField("name", deviceName);
         addField("description", deviceDesc);
         addField("room", roomInfo);

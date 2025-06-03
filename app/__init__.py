@@ -10,13 +10,15 @@ app = Flask(__name__)
 app.config.from_object(app_config)
 
 # Set up the authentication
-auth = Auth(
-    app,
-    authority=app.config["AUTHORITY"],
-    client_id=app.config["CLIENT_ID"],
-    client_credential=app.config["CLIENT_SECRET"],
-    redirect_uri=app.config["REDIRECT_URI"]
-)
+LOGIN_TOGGLE = app.config["LOGIN_ENABLED"]
+if LOGIN_TOGGLE:
+    auth = Auth(
+        app,
+        authority=app.config["AUTHORITY"],
+        client_id=app.config["CLIENT_ID"],
+        client_credential=app.config["CLIENT_SECRET"],
+        redirect_uri=app.config["REDIRECT_URI"]
+    )
 
 # Initialize MongoDB
 mDB = PyMongo()

@@ -75,7 +75,8 @@ def EditSpecs(*, context):
                 # Handle new specifications
                 if spec[:7] == "newName":
                     index = spec[7:]
-                    optionsList = request.form.get("newOptions" + index).split(", ")
+                    optionsParsed = json.loads(request.form.get("newOptions" + index))
+                    optionsList = [item["value"] for item in optionsParsed]
                     db.specs.insert_one({"name": request.form.get(spec), "options": optionsList})
 
                 # Handle edited specification names
@@ -89,7 +90,8 @@ def EditSpecs(*, context):
                 # Handle edited specification options
                 if spec[:11] == "editOptions":
                     editID = spec[11:]
-                    optionsList = request.form.get(spec).split(", ")
+                    optionsParsed = json.loads(request.form.get(spec))
+                    optionsList = [item["value"] for item in optionsParsed]
                     db.specs.find_one_and_update(
                         {"_id": ObjectId(editID)},
                         {"$set": {"options": optionsList}}
@@ -122,6 +124,10 @@ def AddDevice(*, context):
         if deviceData["name"] == "":
             return redirect(url_for("app.AddDevice"))
 
+        # Validate required ID field
+        if deviceData["ID"] == "":
+            return redirect(url_for("app.AddDevice"))
+
         # Handle room assignment
         if deviceData["room"] == "brak":
             deviceData["room"] = {"name": "brak"}
@@ -134,7 +140,7 @@ def AddDevice(*, context):
 
         # Generate barcode if device is not private
         if deviceData["private"] == "False":
-            barCodeData = deviceData["name"]
+            barCodeData = deviceData["ID"]
             barCode = Code128(barCodeData)
             barCodePath = os.path.join(UPLOAD_BARCODES, "barcode" + str(addedDevice.inserted_id))
             barCode.save(barCodePath)
@@ -218,10 +224,10 @@ def EditDevice(*, context):
         return redirect(url_for("app.ListDevices"))
 
     # Handle device lookup by name
-    if request.args.get("deviceName"):
-        deviceName = request.args.get("deviceName")
+    if request.args.get("deviceID"):
+        deviceID = request.args.get("deviceID")
         allSpecs = list(db.specs.find())
-        editedDevice = db.devices.find_one({"name": deviceName})
+        editedDevice = db.devices.find_one({"ID": deviceID})
         if editedDevice:
             deviceSpecs = editedDevice["specs"]
             editedDevice["_id"] = str(editedDevice["_id"])
@@ -236,6 +242,10 @@ def EditDevice(*, context):
     if request.args.get("deviceId"):
         deviceId = request.args.get("deviceId")
         allSpecs = list(db.specs.find())
+
+        imageExists = os.path.exists(f'app/static/images/devicePhotos/device{deviceId}.png')
+        print(imageExists)
+
         editedDevice = db.devices.find_one({"_id": ObjectId(deviceId)})
         if editedDevice:
             deviceSpecs = editedDevice["specs"]
@@ -244,6 +254,7 @@ def EditDevice(*, context):
                                    specs=allSpecs,
                                    deviceSpecs=deviceSpecs,
                                    rooms=allRooms,
+                                   imageExists = imageExists,
                                    editedDevice=editedDevice,
                                    username=context['user']['name'])
 
@@ -276,10 +287,14 @@ def ListDevices(*, context):
     if request.method == "POST":
         filter_specs = json.loads(request.form.get("filterSpecs", "{}"))
         filter_name = request.form.get("filterName", "").strip()
+        filter_ID = request.form.get("filterID", "").strip()
 
         # Filter by device name
         if filter_name:
             query["name"] = {"$regex": f".*{re.escape(filter_name)}.*", "$options": "i"}
+
+        if filter_ID:
+            query["ID"] = {"$regex": f".*{re.escape(filter_ID)}.*", "$options": "i"}
 
         # Filter by specifications
         if filter_specs:

@@ -2,60 +2,54 @@
 
 {% block content %}
 
-<div class="container shadow border border-light-subtle rounded text-center pt-2">
+<div class="container shadow border border-light-subtle rounded text-center pt-2" style="height: 800px">
     <h1 class="mt-2"><b>Edytuj Specyfikacje</b></h1>
     <p class="px-3">
-        Zarządzaj specyfikacją różnych urządzeń dla poprawności działania filtrów.
-        Wszystkie elementy muszą znajdować się w formie listy bez nawiasów, np. <b>"data1, data2, data3"</b>.
-        Nieprzestrzeganie zasad może powodować błędy przy edycji i dodawaniu.
+        Zarządzaj opcjami różnych specyfikacji urządzeń wykorzystywanych później do filtrowania.
     </p>
 
     <form method="post">
-        <div class="table-responsive overflow-auto" style="max-height: 600px;">
+        <div class="table overflow-auto" style="height: 600px;">
             <table class="table table-sm text-wrap align-middle" id="specsTable">
                 <thead class="table-light">
                     <tr>
                         <th scope="col">Nazwa</th>
+                        <th scope="col">Edycja nazwy</th>
                         <th scope="col">Lista opcji</th>
-                        <th scope="col">Akcja</th>
+                        <th scope="col">Usuń</th>
                     </tr>
                 </thead>
                 <tbody class="table-group-divider">
                     {% for item in specs %}
                         <tr>
-                            <td style="width: 35%">
-                                <div class="input-group">
-                                    <span class="input-group-text"><b>{{ item.name }}</b></span>
-                                    <input type="text" class="form-control" name="editName{{ item._id }}"
-                                           placeholder="Edytuj to pole aby zmienić">
-                                </div>
+                            <td style="width: 15%">
+                                <b>{{ item.name }}</b>
+                            </td>
+                            <td style="width: 10%">
+                                <input type="text" class="form-control" name="editName{{ item._id }}" placeholder="Nowa nazwa">
                             </td>
                             <td>
                                 <div class="input-group">
-                                    <span class="input-group-text"><b>[</b></span>
-                                    <input type="text" class="form-control" name="editOptions{{ item._id }}"
-                                           value="{{ item.options }}">
-                                    <span class="input-group-text"><b>]</b></span>
+                                    <input type="text" class="tag-input form-control text-start" style="flex-wrap: wrap;" name="editOptions{{ item._id }}" value="{{ item.options }}">
                                 </div>
                             </td>
-                            <td style="width:10%">
-                                <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteConfirm" data-bs-name="{{ item.name }}" data-bs-identifier="{{ item._id }}">Usuń</button>
+                            <td style="width:5%">
+                                <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteConfirm" data-bs-name="{{ item.name }}" data-bs-identifier="{{ item._id }}"><i class="bi bi-trash"></i></button>
                             </td>
                         </tr>
                     {% endfor %}
                 </tbody>
             </table>
-
             {% if not specs %}
-                <div id="infoMissing" class="alert alert-danger text-center">
-                    <h3>Brak specyfikacji</h3>
-                </div>
+            <div id="infoMissing" class="d-flex justify-content-center align-items-center" style="height: 500px; overflow-y: auto;">
+                <h3 class="d-flex alert alert-danger h-25 w-75 align-items-center justify-content-center">Brak specyfikacji</h3>
+            </div>
             {% endif %}
         </div>
 
         <!-- Action buttons -->
         <div class="d-flex justify-content-center gap-2 mt-2 mb-2">
-            <button type="button" id="addRowBtn" class="btn btn-primary">Dodaj</button>
+            <button type="button" id="addRowBtn" class="btn btn-primary">Dodaj nową opcje</button>
             <button type="submit" name="saveAllSpecs" value="1" class="btn btn-success">Zapisz wszystko</button>
         </div>
     </form>
@@ -83,7 +77,20 @@
     </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@yaireo/tagify"></script>
+
 <script>
+    document.querySelectorAll('.tag-input').forEach((input) => {
+    new Tagify(input);
+    });
+
+    document.addEventListener('keydown', function (e) {
+    const isTagifyInput = e.target.classList.contains('nosubmit');
+    if (isTagifyInput && e.key === 'Enter') {
+        e.preventDefault(); // zapobiega submitowi formularza
+    }
+    });
+
     // Counter for new row IDs
     var counter = 1;
 
@@ -114,29 +121,31 @@
         // Create new row HTML
         const newRow = document.createElement('tr');
         newRow.innerHTML = `
-            <td scope="row" class="align-middle" style="width: 35%">
-                <div class="input-group">
-                    <input type="text" class="form-control" name="newName` + counter + `" placeholder="Nowa nazwa"></input>
-                </div>
-            </td>
-            <td class="align-middle">
-                <div class="input-group">
-                    <span class="input-group-text"><b>[</b></span>
-                    <input type="text" class="form-control" value="" name=newOptions` + counter + `>
-                    <span class="input-group-text"><b>]</b></span>
-                </div>
-            </td>
-            <td class="align-middle" style="width:10%">
-                <button type="button" class="btn btn-danger removeRowBtn">Usuń</button>
-            </td>
+            <tr>
+                            <td style="width: 20%" colspan="2">
+                                <input type="text" class="form-control" name="newName` + counter + `" placeholder="Nowa nazwa">
+                            </td>
+                            <td>
+                                <div class="input-group">
+                                    <input type="text" class="nosubmit tag-input` + counter + ` form-control text-start" style="flex-wrap: wrap;" name=newOptions` + counter + ` value="">
+                                </div>
+                            </td>
+                            <td style="width:5%">
+                                <button type="button" class="btn btn-danger removeRowBtn"><i class="bi bi-trash"></i></button>
+                            </td>
+                        </tr>
         `;
 
         // Append new row to table
         tableBody.appendChild(newRow);
 
+        new Tagify(newRow.querySelector(`input[name="newOptions${counter}"]`));
+
         // Hide "no specifications" message if it exists
         const message = document.getElementById('infoMissing');
-        if (message) { message.style.display = "none"; }
+        if (message) {
+            message.classList.add("d-none");
+        }
 
         // Increment counter for next row
         counter++;
@@ -149,4 +158,6 @@
         }
     });
 </script>
+
+
 {% endblock %}

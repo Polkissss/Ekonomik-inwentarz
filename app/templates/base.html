@@ -8,6 +8,16 @@
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
           integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@yaireo/tagify/dist/tagify.css">
+
+    <style>
+      .tagify {
+        max-height: 100px;
+        overflow-y: auto;
+      }
+    </style>
+
 </head>
 
 <!-- Body with background and full viewport height -->
@@ -49,7 +59,7 @@
           <!-- Search form for devices -->
           <form class="d-flex pe-2 mb-2 mb-lg-0" role="search" action="/edytujUrządzenie" method="GET">
             <input class="form-control me-2" type="search"
-                   placeholder="Szukaj nazwę urządzenia" name="deviceName" aria-label="Search">
+                   placeholder="Szukaj urządzenia po ID" name="deviceID" aria-label="Search">
             <button class="btn btn-outline-success fw-bold" type="submit">Szukaj</button>
           </form>
 

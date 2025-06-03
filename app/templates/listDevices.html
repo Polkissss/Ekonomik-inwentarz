@@ -12,7 +12,8 @@
             <h1><b>Lista urządzeń</b></h1>
 
             <!-- Responsive table container with vertical scroll -->
-            <div class="table-responsive" style="max-height: 700px; overflow-y: auto;">
+                {% if devices %}
+                <div class="table-responsive" style="height: 700px; overflow-y: auto;">
                 <table class="table table-sm text-wrap align-middle">
                     <thead class="table-light sticky-top">
                         <tr>
@@ -25,18 +26,9 @@
                         </tr>
                     </thead>
                     <tbody class="table-group-divider">
-                        {% if not devices %}
-                        <tr>
-                            <td colspan="6">
-                                <div id="infoMissing" class="alert alert-danger">
-                                    <h5>Brak urządeń w bazie danych, bądź z podanymi filtrami.</h5>
-                                </div>
-                            </td>
-                        </tr>
-                        {% else %}
                         {% for device in devices %}
                         <tr>
-                            <td>{{ device._id }}</td>
+                            <td>{{ device.ID }}</td>
                             <td>{{ device.name }}</td>
                             <td>{{ device.room.name }}</td>
                             <td>{% if device.room.keeper != "brak" and device.room.keeper %}{{device.room.keeper}}{% else %}Bez podanego pracownika{% endif %}</td>
@@ -48,9 +40,14 @@
                             </td>
                         </tr>
                         {% endfor %}
-                        {% endif %}
                     </tbody>
                 </table>
+                {% else %}
+                <div class="table-responsive d-flex justify-content-center align-items-center" style="height: 700px; overflow-y: auto;">
+                    <div class="d-flex alert alert-danger h-25 w-75 align-items-center justify-content-center" role="alert">
+                        <h3>Brak urządeń w bazie danych, bądź z podanymi filtrami.</h3>
+                    </div>
+                {% endif %}
             </div>
             <!-- Pagination -->
             <div class="d-flex justify-content-center mt-3">
@@ -60,7 +57,7 @@
                         <li class="page-item">
                             <a class="page-link"
                                href="?page={{ page-1 }}&roomName={{ current_filters.roomName|default('', true) }}">
-                                Previous
+                                Poprzednia
                             </a>
                         </li>
                         {% endif %}
@@ -78,7 +75,7 @@
                         <li class="page-item">
                             <a class="page-link"
                                href="?page={{ page+1 }}&roomName={{ current_filters.roomName|default('', true) }}">
-                                Next
+                                Następna
                             </a>
                         </li>
                         {% endif %}
@@ -88,7 +85,7 @@
         </div>
 
         <!-- Filter Section - Adjusts based on screen size -->
-        <div class="col-xl-4 col-lg-4 col-md-12 col-sm-12 shadow border border-light-subtle rounded text-center pt-2 mx-auto" id="filterData">
+        <div class="col-xl-4 col-lg-4 col-md-12 col-sm-12 shadow border border-light-subtle rounded text-center pt-2 mx-auto" id="filterData" style="height: 832px;">
             <h2 class="mb-3"><b>Filtrowanie</b></h2>
 
             <!-- Search input -->
@@ -100,8 +97,12 @@
               </button>
             </div>
 
+            <div class="input-group mb-3">
+              <input type="text" class="form-control" placeholder="Identyfikator urządzenia" id="filterID">
+            </div>
+
             <!-- Filter options -->
-            <div class="border rounded mx-auto p-2 mb-3 overflow-y-auto" style="max-height: 700px">
+            <div class="border rounded mx-auto p-2 mb-3 pb-2 overflow-y-auto" style="height: 650px">
                 <h5 class="mb-3 text-start">Opcje szczegółów:</h5>
 
                 <!-- Room filter -->
@@ -167,6 +168,15 @@
             hiddenFilterName.name = "filterName";
             hiddenFilterName.value = filterName;
             form.appendChild(hiddenFilterName);
+        }
+
+        const filterID = document.getElementById("filterID").value;
+        if (filterID != ""){
+            const hiddenFilterID = document.createElement("input");
+            hiddenFilterID.type = "hidden";
+            hiddenFilterID.name = "filterID";
+            hiddenFilterID.value = filterID;
+            form.appendChild(hiddenFilterID);
         }
 
         // Add specification filters

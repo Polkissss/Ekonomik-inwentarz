@@ -7,7 +7,7 @@
     <!-- Page header -->
     <h1 class="mt-2 mb-2"><b>Pomieszczenia</b></h1>
     <p>
-      Zarządzanie opiekunami danych pomieszczeń i w razie potrzeby szybko dostępne dane kontaktowe.
+      Zarządzanie opiekunami danych pomieszczeń.
     </p>
 
     <!-- Filter section -->
@@ -61,7 +61,7 @@
                         {% if page > 1 %}
                         <li class="page-item">
                             <a class="page-link" href="?page={{ page-1 }}&filter={{ request.args.get('filter', '') }}">
-                                Previous
+                                Poprzednia
                             </a>
                         </li>
                         {% endif %}
@@ -79,7 +79,7 @@
                         {% if page < total_pages %}
                         <li class="page-item">
                             <a class="page-link" href="?page={{ page+1 }}&filter={{ request.args.get('filter', '') }}">
-                                Next
+                                Następna
                             </a>
                         </li>
                         {% endif %}
