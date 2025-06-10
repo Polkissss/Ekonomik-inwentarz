@@ -36,7 +36,7 @@ class Spec(BaseModel):
         if cls.Validate(newName):
             oldName = cls._collection.find_one({"_id": ObjectId(_id)})["name"]
             Device.EditSpecName(oldName, newName)
-            return cls._collection.find_one_and_update({"_id": ObjectId(_d)}, {"$set": {"name": newName}})
+            return cls._collection.find_one_and_update({"_id": ObjectId(_id)}, {"$set": {"name": newName}})
         else:
             print("error")
 
