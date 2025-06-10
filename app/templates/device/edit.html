@@ -2,13 +2,13 @@
 
 {% block content %}
 <div class="container shadow border border-light-subtle rounded text-center pt-2" style="min-height: 100%; max-height: 150%">
-    <h1 class="mt-2"><b>Szczegóły urządzenia</b></h1>
+    <h1 class="mt-2"><b><i class="bi bi-laptop"></i> Szczegóły urządzenia</b></h1>
 
     <div class="row mt-3">
         <!-- Left column with device image. If it doesn't exist display a placeholder -->
         <div class="col-md-6 col-12 d-flex justify-content-center align-items-center">
             {% if imageExists %}
-                <img id="selectedImage" src="{{ url_for('static', filename='images/devicePhotos/device' + editedDevice._id + '.png') }}"
+                <img id="selectedImage" src="{{ url_for('static', filename='images/device_photos/device' + editedDevice._id + '.png') }}"
                      alt="obraz urządzenia" class="img-fluid" style="max-width: 50%;" />
             {% else %}
                 <img id="selectedImage" src="{{ url_for('static', filename='images/placeholder.png') }}"
@@ -316,7 +316,7 @@
         // Create form dynamically
         const form = document.createElement('form');
         form.method = 'POST';
-        form.action = '/edytujUrządzenie';
+        form.action = '/urzadzenie/edytuj';
         form.enctype = 'multipart/form-data'; // important for file uploads
 
         // Helper function to add hidden fields

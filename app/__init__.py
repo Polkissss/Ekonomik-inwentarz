@@ -1,24 +1,27 @@
 from flask import Flask
 from flask_pymongo import PyMongo
 from identity.flask import Auth
-import app.app_config as app_config
+
+from .config import *
 
 # Initialize Flask app
 app = Flask(__name__)
 
 # Load configuration from the app_config file
-app.config.from_object(app_config)
+app.config["SESSION_TYPE"] = settings.SESSION_TYPE
+app.config["SECRET_KEY"] = settings.SECRET_KEY
+app.config["MONGO_URI"] = mongo_settings.MONGO_URI
+
+# TODO: Setup a wraper to make login toggleable
 
 # Set up the authentication
-LOGIN_TOGGLE = app.config["LOGIN_ENABLED"]
-if LOGIN_TOGGLE:
-    auth = Auth(
-        app,
-        authority=app.config["AUTHORITY"],
-        client_id=app.config["CLIENT_ID"],
-        client_credential=app.config["CLIENT_SECRET"],
-        redirect_uri=app.config["REDIRECT_URI"]
-    )
+auth = Auth(
+    app,
+    authority=azure_settings.AUTHORITY,
+    client_id=azure_settings.CLIENT_ID,
+    client_credential=azure_settings.CLIENT_SECRET,
+    redirect_uri=azure_settings.REDIRECT_URI
+)
 
 # Initialize MongoDB
 mDB = PyMongo()
@@ -26,8 +29,8 @@ mDB.init_app(app)
 db = mDB.db
 
 # Register blueprints for app views
-from app.views import app_blueprint
-app.register_blueprint(app_blueprint)
-
-# Additional views if needed
-from app import views
+from .blueprints import *
+app.register_blueprint(home.home_blueprint, url_prefix='/strona-glowna')
+app.register_blueprint(device.device_blueprint, url_prefix='/urzadzenie')
+app.register_blueprint(specs.specs_blueprint, url_prefix='/specyfikacje')
+app.register_blueprint(rooms.rooms_blueprint, url_prefix='/pomieszczenia')

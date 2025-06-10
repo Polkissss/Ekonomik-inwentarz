@@ -9,7 +9,7 @@
         <!-- Device List - Main Section -->
         <!-- Using responsive column classes to adjust layout on different screens -->
         <div class="col-xl-7 col-lg-8 col-md-12 col-sm-12 shadow border border-light-subtle rounded text-center pt-2 mx-auto mb-3">
-            <h1><b>Lista urządzeń</b></h1>
+            <h1><b><i class="bi bi-card-list"></i> Lista urządzeń</b></h1>
 
             <!-- Responsive table container with vertical scroll -->
                 {% if devices %}
@@ -34,8 +34,8 @@
                             <td>{% if device.room.keeper != "brak" and device.room.keeper %}{{device.room.keeper}}{% else %}Bez podanego pracownika{% endif %}</td>
                             <td>{% if device.private == "True" %}Tak{% else %}Nie{% endif %}</td>
                             <td>
-                                <form action="/edytujUrządzenie" method="get">
-                                    <button class="btn btn-primary" value="{{ device._id }}" name="deviceId" type="submit">Szczegóły</button>
+                                <form action="/urzadzenie/edytuj" method="get">
+                                    <button class="btn btn-primary" value="{{ device.ID }}" name="deviceID" type="submit">Szczegóły</button>
                                 </form>
                             </td>
                         </tr>
@@ -86,7 +86,7 @@
 
         <!-- Filter Section - Adjusts based on screen size -->
         <div class="col-xl-4 col-lg-4 col-md-12 col-sm-12 shadow border border-light-subtle rounded text-center pt-2 mx-auto" id="filterData" style="height: 832px;">
-            <h2 class="mb-3"><b>Filtrowanie</b></h2>
+            <h2 class="mb-3"><b><i class="bi bi-filter"></i> Filtrowanie</b></h2>
 
             <!-- Search input -->
             <div class="input-group mb-3">
@@ -158,7 +158,7 @@
         // Create and submit form dynamically
         const form = document.createElement("form");
         form.method = "POST";
-        form.action = "{{url_for('app.ListDevices')}}";
+        form.action = "{{url_for('device.ListDevices')}}";
 
         // Add device name filter if provided
         const filterName = document.getElementById("filterName").value;
