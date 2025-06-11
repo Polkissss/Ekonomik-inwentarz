@@ -23,9 +23,6 @@ def EditSpecs(*, context):
             Spec.DeleteBy_ID(deleteID)
             return redirect(url_for("specs.EditSpecs"))
 
-        # TODO: There's a bug when name of a spec is changed it leaves a blank in the device specs list.
-        #       Whenever user changes name it needs to change a name in every device at once.
-
         if request.form.get("saveAllSpecs"):
             # Process all specification changes from the form
             for spec in request.form:

@@ -13,9 +13,6 @@ from app import auth, db
 
 device_blueprint = Blueprint("device", __name__)
 
-# TODO: Add a tracker to each instance of device in database
-#       Last update and who updated
-
 @device_blueprint.route("/dodaj", methods=['POST', 'GET'])
 @auth.login_required()
 def AddDevice(*, context):
@@ -29,7 +26,7 @@ def AddDevice(*, context):
 
     if request.method == "POST":
         deviceData = request.form.to_dict()
-        processedData = Utils.ProcessData(deviceData)
+        processedData = Utils.ProcessData(deviceData, context['user']['preferred_username'])
 
         # Insert new device into database
         addedDevice = Device.Create(processedData)
@@ -194,10 +191,7 @@ def ListDevices(*, context):
                                'filterSpecs': request.form.get("filterSpecs", "{}")
                            })
 
-#   TODO: Repair this
-#
-# @app_blueprint.route("/lista/", methods=['POST', 'GET'])
-# @app_blueprint.route("/lista/<roomName>", methods=['POST', 'GET'])
-# def ListRedirect(roomName=None):
-#     """Redirect to device list, optionally with room filter"""
-#     return redirect(url_for("app.ListDevices", roomName=roomName))
+@device_blueprint.route("/lista/<roomName>", methods=['POST', 'GET'])
+def ListRedirect(roomName=None):
+    """Redirect to device list, optionally with room filter"""
+    return redirect(url_for("device.ListDevices", roomName=roomName))

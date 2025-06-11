@@ -1,5 +1,6 @@
 import json
 import os
+from  datetime import datetime
 
 from barcode import Code128
 from app.models.rooms import Rooms
@@ -10,7 +11,7 @@ UPLOAD_BARCODES = "app/static/images/bar_codes"
 os.makedirs(UPLOAD_DEVICE_PHOTO, exist_ok=True)  # Create directories if they don't exist
 os.makedirs(UPLOAD_BARCODES, exist_ok=True)
 
-def ProcessData(data):
+def ProcessData(data, user=None):
     if "_id" in data:
         data.pop("_id")
 
@@ -21,6 +22,11 @@ def ProcessData(data):
     else:
         roomData = Rooms.FindOne({"name": data["room"]}, {"_id": 0})
         data["room"] = roomData
+
+    if user:
+        data["last_user"] = user
+
+    data["last_update"] = datetime.now()
 
     return data
 

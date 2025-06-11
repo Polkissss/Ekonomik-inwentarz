@@ -57,14 +57,14 @@
           </ul>
 
           <!-- Search form for devices -->
-          <form class="d-flex pe-2 mb-2 mb-lg-0" role="search" action="" method="GET">
+          <form class="d-flex pe-2 mb-2 mb-lg-0" role="search" action="{{url_for('device.EditDevice')}}" method="GET">
             <input class="form-control me-2" type="search"
                    placeholder="Szukaj urządzenia po ID" name="deviceID" aria-label="Search">
             <button class="btn btn-outline-success fw-bold" type="submit">Szukaj</button>
           </form>
 
           <!-- User info and logout button -->
-          <form class="d-flex pe-2" role="search" action="">
+          <form class="d-flex pe-2" role="search" action="{{url_for('auth.Logout')}}">
             <a class="navbar-text me-2 fw-bold text-decoration-none text-white">{{username}}</a>
             <button class="btn btn-outline-danger fw-bold align-end" type="submit">Wyloguj</button>
           </form>

@@ -2,9 +2,17 @@
 
 {% block content %}
 <div class="container shadow border border-light-subtle rounded text-center pt-2" style="min-height: 100%; max-height: 150%">
-    <h1 class="mt-2"><b><i class="bi bi-laptop"></i> Szczegóły urządzenia</b></h1>
+    <div style="height: 80px">
+        <h1 class="mt-2"><b><i class="bi bi-laptop"></i> Szczegóły urządzenia</b></h1>
+        <span class="d-inline-block float-end" data-bs-html="true" tabindex="0" data-bs-toggle="popover" data-bs-trigger="hover focus" data-bs-content="Ostatnia edycja: <br>
+                                                                                                                                                        {{editedDevice.last_user}} <br>
+                                                                                                                                                        Data edycji: <br>
+                                                                                                                                                        {{editedDevice.last_update}} <br>">
+               <p>dodatkowe informacje <i class="bi bi-info-circle"></i></p>
+        </span>
+    </div>
 
-    <div class="row mt-3">
+    <div class="row mt-3 float-none">
         <!-- Left column with device image. If it doesn't exist display a placeholder -->
         <div class="col-md-6 col-12 d-flex justify-content-center align-items-center">
             {% if imageExists %}
@@ -75,7 +83,7 @@
 
     <!-- Specifications section -->
     <div id="allSpecs" class="d-flex overflow-scroll align-items-center flex-column mt-3"
-         style="clear: both; margin: 0 auto; max-height: 310px;">
+         style="clear: both; margin: 0 auto; height: 300px;">
     </div>
 
     <!-- Action buttons -->
@@ -140,6 +148,16 @@
     const specList = JSON.parse('{{ specs | tojson | safe }}');
     const deviceSpecs = {{ deviceSpecs | tojson | safe }};
     var fileInput = "";
+
+     /**
+     * Initialize Bootstrap popovers when DOM is loaded
+     */
+    document.addEventListener('DOMContentLoaded', function() {
+        var popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'));
+        var popoverList = popoverTriggerList.map(function (popoverTriggerEl) {
+            return new bootstrap.Popover(popoverTriggerEl);
+        });
+    });
 
     // Initialize the form with existing device specifications
     document.addEventListener("DOMContentLoaded", function () {
