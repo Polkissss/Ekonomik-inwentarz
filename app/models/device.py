@@ -1,4 +1,4 @@
-from .base import mDB, BaseModel, ObjectId
+from .base import mDB, BaseModel, ObjectId, ValidationError
 
 class Device(BaseModel):
     _collection = mDB.db.devices
@@ -6,20 +6,20 @@ class Device(BaseModel):
     @classmethod
     def ValidateCreate(cls, docs):
         if docs["name"] == "":
-            return False
+            raise ValidationError("Pole 'nazwa' jest wymagane.")
         elif docs["ID"] == "":
-            return False
+            raise ValidationError("Pole 'ID' jest wymagane.")
         elif cls.FindByID(docs["ID"]):
-            return False
+            raise ValidationError(f"Urządzenie o ID:  {docs["ID"]} istnieje już w bazie.")
         else:
             return True
 
     @classmethod
     def ValidateEdit(cls, docs):
         if docs["name"] == "":
-            return False
+            raise ValidationError("Pole 'nazwa' jest wymagane.")
         elif docs["ID"] == "":
-            return False
+            raise ValidationError("Pole 'ID' jest wymagane.")
         else:
             return True
 
@@ -31,21 +31,17 @@ class Device(BaseModel):
     def Create(cls, docs):
         if cls.ValidateCreate(docs):
             return cls._collection.insert_one(docs)
-        else:
-            print("error")
 
     @classmethod
     def Edit(cls, _id ,docs):
         _id = ObjectId(_id)
         if cls.ValidateEdit(docs):
             cls._collection.find_one_and_update({"_id": _id}, {"$set": docs})
-        else:
-            print("error: Edycja urzadzenie nie powiodla sie")
 
     @classmethod
     def EditSpecName(cls, oldName, newName):
         return cls._collection.update_many(
-            {"specs.Typ urządzenia": { "$exists": True}},
+            {f"specs.{oldName}": { "$exists": True}},
             {"$rename": {f"specs.{oldName}": f"specs.{newName}"}}
         )
 

@@ -1,8 +1,7 @@
 from bson import ObjectId
+from werkzeug.routing import ValidationError
 from datetime import datetime
 from app import mDB
-
-# TODO: Add error handling to every model
 
 class BaseModel():
     _collection = None
@@ -22,3 +21,7 @@ class BaseModel():
     @classmethod
     def Find(cls, filter=None, projection=None):
         return cls._collection.find(filter or {}, projection)
+
+    @classmethod
+    def TotalDocuments(cls, query):
+        return cls._collection.count_documents(query)

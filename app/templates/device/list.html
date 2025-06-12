@@ -19,6 +19,7 @@
                         <tr>
                             <th scope="col" class="col-md-2 col-sm-3">ID</th>
                             <th scope="col" class="col-md-2 col-sm-3">Nazwa</th>
+                            <th scope="col" class="col-md-2 col-sm-2">Obraz</th>
                             <th scope="col" class="col-md-2 col-sm-2">Pomieszczenie</th>
                             <th scope="col" class="col-md-3 col-sm-2">Opiekun</th>
                             <th scope="col" class="col-md-3 col-sm-2">Prywatny</th>
@@ -30,6 +31,11 @@
                         <tr>
                             <td>{{ device.ID }}</td>
                             <td>{{ device.name }}</td>
+                            <td>
+                                <img id="selectedImage" src="{{ url_for('static', filename='images/device_photos/device' + device._id + '.png') }}"
+                                     onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/placeholder.png') }}';"
+                                     alt="Brak obrazu" class="img-fluid" style="height: 63px;" />
+                            </td>
                             <td>{{ device.room.name }}</td>
                             <td>{% if device.room.keeper != "brak" and device.room.keeper %}{{device.room.keeper}}{% else %}Bez podanego pracownika{% endif %}</td>
                             <td>{% if device.private == "True" %}Tak{% else %}Nie{% endif %}</td>
@@ -56,25 +62,53 @@
                         {% if page > 1 %}
                         <li class="page-item">
                             <a class="page-link"
-                               href="?page={{ page-1 }}&roomName={{ current_filters.roomName|default('', true) }}">
+                               href="?page={{ page-1 }}&roomName={{ current_filters.roomName|default('', true) }}&filterID={{ current_filters.filterID|default('', true) }}&filterName={{ current_filters.filterName|default('', true) }}&filterSpecs={{ current_filters.filterSpecs|default('{}', true) }}">
                                 Poprzednia
+                            </a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link"
+                               href="?page={{ 1 }}&roomName={{ current_filters.roomName|default('', true) }}&filterID={{ current_filters.filterID|default('', true) }}&filterName={{ current_filters.filterName|default('', true) }}&filterSpecs={{ current_filters.filterSpecs|default('{}', true) }}">
+                                1
                             </a>
                         </li>
                         {% endif %}
 
-                        {% for p in range(1, total_pages+1) %}
-                        <li class="page-item {% if p == page %}active{% endif %}">
+                        {% for p in range(page - 4, page) %}
+                            {%if p > 1 %}
+                            <li class="page-item {% if p == page %}active{% endif %}">
+                                <a class="page-link"
+                                   href="?page={{ p }}&roomName={{ current_filters.roomName|default('', true) }}&filterID={{ current_filters.filterID|default('', true) }}&filterName={{ current_filters.filterName|default('', true) }}&filterSpecs={{ current_filters.filterSpecs|default('{}', true) }}">
+                                    {{ p }}
+                                </a>
+                            </li>
+                            {% endif %}
+                        {% endfor %}
+
+                        {% for p in range(page, page + 5) %}
+                            {%if p <= total_pages %}
+                            <li class="page-item {% if p == page %}active{% endif %}">
+                                <a class="page-link"
+                                   href="?page={{ p }}&roomName={{ current_filters.roomName|default('', true) }}&filterID={{ current_filters.filterID|default('', true) }}&filterName={{ current_filters.filterName|default('', true) }}&filterSpecs={{ current_filters.filterSpecs|default('{}', true) }}">
+                                    {{ p }}
+                                </a>
+                            </li>
+                            {% endif %}
+                        {% endfor %}
+
+                        {% if page + 9 < total_pages %}
+                        <li class="page-item {% if total_pages == page %}active{% endif %}">
                             <a class="page-link"
-                               href="?page={{ p }}&roomName={{ current_filters.roomName|default('', true) }}">
-                                {{ p }}
+                               href="?page={{ total_pages }}&roomName={{ current_filters.roomName|default('', true) }}&filterID={{ current_filters.filterID|default('', true) }}&filterName={{ current_filters.filterName|default('', true) }}&filterSpecs={{ current_filters.filterSpecs|default('{}', true) }}">
+                                {{ total_pages }}
                             </a>
                         </li>
-                        {% endfor %}
+                        {% endif %}
 
                         {% if page < total_pages %}
                         <li class="page-item">
                             <a class="page-link"
-                               href="?page={{ page+1 }}&roomName={{ current_filters.roomName|default('', true) }}">
+                               href="?page={{ page+1 }}&roomName={{ current_filters.roomName|default('', true) }}&filterID={{ current_filters.filterID|default('', true) }}&filterName={{ current_filters.filterName|default('', true) }}">
                                 Następna
                             </a>
                         </li>
@@ -157,7 +191,7 @@
 
         // Create and submit form dynamically
         const form = document.createElement("form");
-        form.method = "POST";
+        form.method = "GET";
         form.action = "{{url_for('device.ListDevices')}}";
 
         // Add device name filter if provided
@@ -190,4 +224,5 @@
         form.submit();
     });
 </script>
+</div>
 {% endblock %}

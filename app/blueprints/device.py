@@ -2,13 +2,15 @@
 import json
 import re
 
+from werkzeug.routing import ValidationError
+
 from app.models.specs import Spec
 from app.models.device import Device
 from app.models.rooms import Rooms
 
 import app.helpers.device_utils as Utils
 
-from flask import render_template, Blueprint, request, url_for, redirect
+from flask import render_template, Blueprint, request, url_for, redirect, flash
 from app import auth, db
 
 device_blueprint = Blueprint("device", __name__)
@@ -29,19 +31,22 @@ def AddDevice(*, context):
         processedData = Utils.ProcessData(deviceData, context['user']['preferred_username'])
 
         # Insert new device into database
-        addedDevice = Device.Create(processedData)
-
-        if not addedDevice:
-            return redirect(url_for("device.ListDevices"))
+        try:
+            addedDevice = Device.Create(processedData)
+        except ValidationError as e:
+            flash(str(e), "danger")
+            return redirect(url_for("device.AddDevice"))
 
         # Generate barcode if device is not private
         if processedData["private"] == "False":
             Utils.GenerateBarCode(processedData["ID"], addedDevice.inserted_id)
+        else:
+            Utils.GenerateBarCode("PRYWATNE", addedDevice.inserted_id)
 
         # Handle image upload
         if request.files:
             if Utils.SaveDeviceImage(request.files["image"], addedDevice.inserted_id):
-                return redirect(url_for("home.Home"))
+                return redirect(url_for("device.ListDevices"))
             else:
                 print("error")
                 return redirect(url_for("Device.AddDevice"))
@@ -77,7 +82,11 @@ def EditDevice(*, context):
         data = Utils.ProcessData(deviceData)
 
         # Update device in database
-        Device.Edit(deviceId, data)
+        try:
+            Device.Edit(deviceId, data)
+        except ValidationError as e:
+            flash(str(e), "danger")
+            return redirect(url_for("device.EditDevice") + f"?&deviceID={data["ID"]}")
 
 
         # Handle image update
@@ -93,7 +102,6 @@ def EditDevice(*, context):
 
     # Handle device lookup by ID
     if request.args.get("deviceID"):
-        print("szukam")
         deviceID = request.args.get("deviceID")
         editedDevice = Device.FindOne({"ID": deviceID})
         if editedDevice:
@@ -122,12 +130,10 @@ def ListDevices(*, context):
     """
     roomName = request.args.get('roomName')
 
-    # TODO: Optimize paghination
-
     # Pagination parameters
     page = request.args.get('page', 1, type=int)
-    per_page = 14
-    skip = (page - 1) * per_page
+    perPage = 9
+    skip = (page - 1) * perPage
 
     # Base query
     query = {}
@@ -137,39 +143,39 @@ def ListDevices(*, context):
         query["room.name"] = roomName
 
     # Handle filter form submission
-    if request.method == "POST":
-        filter_specs = json.loads(request.form.get("filterSpecs", "{}"))
-        filter_name = request.form.get("filterName", "").strip()
-        filter_ID = request.form.get("filterID", "").strip()
+    if request.method == "GET":
+        filterSpecs = json.loads(request.args.get("filterSpecs", "{}"))
+        filterName = request.args.get("filterName", "").strip()
+        filterID = request.args.get("filterID", "").strip()
 
         # Filter by device name
-        if filter_name:
-            query["name"] = {"$regex": f".*{re.escape(filter_name)}.*", "$options": "i"}
+        if filterName:
+            query["name"] = {"$regex": f".*{re.escape(filterName)}.*", "$options": "i"}
 
-        if filter_ID:
-            query["ID"] = {"$regex": f".*{re.escape(filter_ID)}.*", "$options": "i"}
+        if filterID:
+            query["ID"] = {"$regex": f".*{re.escape(filterID)}.*", "$options": "i"}
 
         # Filter by specifications
-        if filter_specs:
-            for field, value in filter_specs.items():
-                str_value = str(value)
+        if filterSpecs:
+            for field, value in filterSpecs.items():
+                strValue = str(value)
                 if field == "Pomieszczenie":
                     query[f"room.name"] = {
-                        "$regex": f"^{re.escape(str_value)}$",
+                        "$regex": f"^{re.escape(strValue)}$",
                         "$options": "i"
                     }
                 else:
                     query[f"specs.{field}"] = {
-                        "$regex": f"^{re.escape(str_value)}$",
+                        "$regex": f"^{re.escape(strValue)}$",
                         "$options": "i"
                     }
 
     # Get paginated devices
-    allDevices = list(db.devices.find(query).skip(skip).limit(per_page))
+    allDevices = list(Device.Find(query).skip(skip).limit(perPage))
 
     # Calculate pagination details
-    total = db.devices.count_documents(query)
-    total_pages = (total + per_page - 1) // per_page
+    total = Device.TotalDocuments(query)
+    total_pages = (total + perPage - 1) // perPage
 
     # Convert ObjectId to string for template rendering
     for device in allDevices:
@@ -187,8 +193,9 @@ def ListDevices(*, context):
                            username=context['user']['name'],
                            current_filters={
                                'roomName': roomName,
-                               'filterName': request.form.get("filterName", ""),
-                               'filterSpecs': request.form.get("filterSpecs", "{}")
+                               'filterName': request.args.get("filterName", ""),
+                               'filterID': request.args.get("filterID", ""),
+                               'filterSpecs': request.args.get("filterSpecs", "{}")
                            })
 
 @device_blueprint.route("/lista/<roomName>", methods=['POST', 'GET'])

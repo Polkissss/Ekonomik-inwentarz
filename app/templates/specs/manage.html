@@ -2,18 +2,33 @@
 
 {% block content %}
 
-<div class="container shadow border border-light-subtle rounded text-center pt-2" style="height: 800px">
+<div class="container shadow border border-light-subtle rounded text-center pt-2" style="min-height: 800px; max-height: 870px">
     <h1 class="mt-2"><b><i class="bi bi-wrench"></i> Edytuj Specyfikacje</b></h1>
     <p class="px-3">
         Zarządzaj opcjami różnych specyfikacji urządzeń wykorzystywanych później do filtrowania.
     </p>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="d-flex flex-column align-items-center float-none">
+        {% for category, message in messages %}
+        <div class="alert alert-{{ category }} w-50 alert-dismissible fade show mt-1 mx-auto text-center" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Zamknij"></button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    <!--TODO: Implement limiting every tags length (Shit goes down if you let people spam in tags)-->
 
     <form method="post">
         <div class="table overflow-auto" style="height: 600px;">
             <table class="table table-sm text-wrap align-middle" id="specsTable">
                 <thead class="table-light">
                     <tr>
-                        <th scope="col">Nazwa</th>
+                        <th scope="col" style="width: 15%">Nazwa</th>
                         <th scope="col">Edycja nazwy</th>
                         <th scope="col">Lista opcji</th>
                         <th scope="col">Usuń</th>
@@ -22,15 +37,15 @@
                 <tbody class="table-group-divider">
                     {% for item in specs %}
                         <tr>
-                            <td style="width: 15%">
+                            <td style="width: 15%" class="text-break">
                                 <b>{{ item.name }}</b>
                             </td>
                             <td style="width: 10%">
-                                <input type="text" class="form-control" name="editName{{ item._id }}" placeholder="Nowa nazwa">
+                                <input type="text" maxlength="100" class="form-control" name="editName{{ item._id }}" placeholder="Nowa nazwa">
                             </td>
                             <td>
                                 <div class="input-group">
-                                    <input type="text" class="tag-input form-control text-start" style="flex-wrap: wrap;" name="editOptions{{ item._id }}" value="{{ item.options }}">
+                                    <input type="text" class="tag-input form-control text-start" name="editOptions{{ item._id }}" value="{{ item.options }}">
                                 </div>
                             </td>
                             <td style="width:5%">

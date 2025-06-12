@@ -1,4 +1,4 @@
-from .base import BaseModel, mDB, ObjectId
+from .base import BaseModel, mDB, ObjectId, ValidationError
 from .device import Device
 
 class Spec(BaseModel):
@@ -7,11 +7,9 @@ class Spec(BaseModel):
     @classmethod
     def Validate(cls, name="*", options="*"):
         if name == "":
-            return False
-        elif options == []:
-            return False
+            raise ValidationError("Pole 'nazwa' jest wymagane.")
         elif cls._collection.find_one({"name": name}):
-            return False
+            raise ValidationError(f"Nazwa: {name} już istnieje w bazie.")
         else:
             return True
 

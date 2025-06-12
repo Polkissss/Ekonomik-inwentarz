@@ -21,28 +21,27 @@ def RoomList(*, context):
 
         return redirect(url_for("rooms.RoomList"))
 
-    # TODO: Optimize pagination
 
     # Pagination setup
     page = request.args.get('page', 1, type=int)
-    per_page = 9
+    perPage = 9
     query = {}
-    filter_name = request.args.get('filter', '').strip()
-    skip = (page - 1) * per_page
+    filterName = request.args.get('filter', '').strip()
+    skip = (page - 1) * perPage
 
     # Apply name filter if provided
-    if filter_name:
-        query['name'] = {'$regex': f'.*{filter_name}.*', '$options': 'i'}
+    if filterName:
+        query['name'] = {'$regex': f'.*{filterName}.*', '$options': 'i'}
 
     # Get paginated rooms
-    allRooms = list(Rooms.Find(query).skip(skip).limit(per_page))
+    allRooms = list(Rooms.Find(query).skip(skip).limit(perPage))
 
     # Calculate pagination details
-    total = db.rooms.count_documents(query)
-    total_pages = (total + per_page - 1) // per_page
+    total = Rooms.TotalDocuments(query)
+    totalPages = (total + perPage - 1) // perPage
 
     return render_template("rooms/manage.html",
                            rooms=allRooms,
                            page=page,
-                           total_pages=total_pages,
+                           total_pages=totalPages,
                            username=context['user']['name'])

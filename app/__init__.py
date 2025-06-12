@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, redirect, url_for
 from flask_pymongo import PyMongo
 from identity.flask import Auth
 
@@ -35,3 +35,7 @@ app.register_blueprint(device.device_blueprint, url_prefix='/urzadzenie')
 app.register_blueprint(specs.specs_blueprint, url_prefix='/specyfikacje')
 app.register_blueprint(rooms.rooms_blueprint, url_prefix='/pomieszczenia')
 app.register_blueprint(auth.auth_blueprint, url_prefix='/autoryzacja')
+
+@app.route("/")
+def DefaultRedirect():
+    return redirect(url_for("home.Home"))

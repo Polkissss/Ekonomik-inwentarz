@@ -21,9 +21,9 @@
 </head>
 
 <!-- Body with background and full viewport height -->
-<body class="bg-light-subtle" style="height: 100vh; min-height: 100vh">
+<body class="bg-light-subtle overflow-y-auto" style="height: 100vh; min-height: 100vh">
     <!-- Navigation bar -->
-    <nav class="navbar border-bottom border-body navbar-expand-lg bg-dark shadow p-3 mb-5" data-bs-theme="dark">
+    <nav class="navbar border-bottom border-body navbar-expand-lg bg-dark shadow p-3 mb-4" data-bs-theme="dark">
       <div class="container-fluid">
         <!-- Mobile menu toggle button -->
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
@@ -60,7 +60,9 @@
           <form class="d-flex pe-2 mb-2 mb-lg-0" role="search" action="{{url_for('device.EditDevice')}}" method="GET">
             <input class="form-control me-2" type="search"
                    placeholder="Szukaj urządzenia po ID" name="deviceID" aria-label="Search">
-            <button class="btn btn-outline-success fw-bold" type="submit">Szukaj</button>
+            <span class="d-inline-block float-end" data-bs-html="true" tabindex="0" data-bs-toggle="popover" data-bs-trigger="hover focus" data-bs-content="Jeśli takie urządzenie nie istnieje, zostaniesz przekierowany na listę wszytskich urządzeń">
+                <button class="btn btn-outline-success fw-bold" type="submit">Szukaj</button>
+            </span>
           </form>
 
           <!-- User info and logout button -->
@@ -83,5 +85,17 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
             integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
             crossorigin="anonymous"></script>
+
+    <script>
+        /**
+         * Initialize Bootstrap popovers when DOM is loaded
+         */
+        document.addEventListener('DOMContentLoaded', function() {
+            var popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'));
+            var popoverList = popoverTriggerList.map(function (popoverTriggerEl) {
+                return new bootstrap.Popover(popoverTriggerEl);
+            });
+        });
+    </script>
 </body>
 </html>

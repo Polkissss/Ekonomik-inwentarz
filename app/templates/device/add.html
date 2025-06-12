@@ -4,7 +4,22 @@
 <div class="container shadow border border-light-subtle rounded text-center pt-2" style="min-height: 100%; max-height: 150%">
     <h1 class="mt-2"><b><i class="bi bi-laptop"></i> Dodaj urządzenie</b></h1>
 
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="d-flex flex-column align-items-center">
+        {% for category, message in messages %}
+        <div class="alert alert-{{ category }} w-50 alert-dismissible fade show mt-2 mx-auto text-center" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Zamknij"></button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+
+
     <div class="row mt-3">
+
         <!-- Left column with device image -->
         <div class="col-md-6 col-12 d-flex justify-content-center align-items-center">
             <img id="selectedImage" src="{{ url_for('static', filename='images/placeholder.png') }}"
@@ -100,16 +115,6 @@
 </div>
 
 <script>
-    /**
-     * Initialize Bootstrap popovers when DOM is loaded
-     */
-    document.addEventListener('DOMContentLoaded', function() {
-        var popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'));
-        var popoverList = popoverTriggerList.map(function (popoverTriggerEl) {
-            return new bootstrap.Popover(popoverTriggerEl);
-        });
-    });
-
     // Counter for dynamic specification items
     let counter = 1;
     // Parse specifications from template context

@@ -4,24 +4,30 @@
 <div class="container shadow border border-light-subtle rounded text-center pt-2" style="min-height: 100%; max-height: 150%">
     <div style="height: 80px">
         <h1 class="mt-2"><b><i class="bi bi-laptop"></i> Szczegóły urządzenia</b></h1>
-        <span class="d-inline-block float-end" data-bs-html="true" tabindex="0" data-bs-toggle="popover" data-bs-trigger="hover focus" data-bs-content="Ostatnia edycja: <br>
-                                                                                                                                                        {{editedDevice.last_user}} <br>
-                                                                                                                                                        Data edycji: <br>
-                                                                                                                                                        {{editedDevice.last_update}} <br>">
-               <p>dodatkowe informacje <i class="bi bi-info-circle"></i></p>
+        <span class="d-inline-block float-end" data-bs-html="true" tabindex="0" data-bs-toggle="popover" data-bs-trigger="hover focus" data-bs-content="Ostatnia edycja: <br> {{editedDevice.last_user}} <br> Data edycji: <br> {{editedDevice.last_update}} <br>">
+               dodatkowe informacje <i class="bi bi-info-circle"></i>
         </span>
     </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="d-flex flex-column align-items-center float-none">
+        {% for category, message in messages %}
+        <div class="alert alert-{{ category }} w-50 alert-dismissible fade show mt-1 mx-auto text-center" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Zamknij"></button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
 
     <div class="row mt-3 float-none">
         <!-- Left column with device image. If it doesn't exist display a placeholder -->
         <div class="col-md-6 col-12 d-flex justify-content-center align-items-center">
-            {% if imageExists %}
                 <img id="selectedImage" src="{{ url_for('static', filename='images/device_photos/device' + editedDevice._id + '.png') }}"
+                     onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/placeholder.png') }}';"
                      alt="obraz urządzenia" class="img-fluid" style="max-width: 50%;" />
-            {% else %}
-                <img id="selectedImage" src="{{ url_for('static', filename='images/placeholder.png') }}"
-                 alt="obraz urządzenia" class="img-fluid" style="max-width: 50%;" />
-            {% endif %}
         </div>
 
         <!-- Right column with form -->
@@ -63,18 +69,16 @@
                     </label>
                 </div>
 
-                {% if editedDevice.private == "False"%}
-                    <a href="{{ url_for('static', filename='images/barCodes/barcode' + editedDevice._id + '.svg') }}"
+                    <a href="{{ url_for('static', filename='images/bar_codes/barcode' + editedDevice._id + '.svg') }}"
                        target="_blank"
                        class="btn btn-success btn-rounded px-3 py-2">
                        Otwórz kod
                     </a>
 
-                    <a href="{{ url_for('static', filename='images/barCodes/barcode' + editedDevice._id + '.svg') }}"
+                    <a href="{{ url_for('static', filename='images/bar_codes/barcode' + editedDevice._id + '.svg') }}"
                        class="btn btn-success btn-rounded px-3 py-2" download="{{editedDevice.name}}">
                        Pobierz kod
                     </a>
-                {% endif %}
             </div>
 
             </div>
@@ -149,16 +153,6 @@
     const deviceSpecs = {{ deviceSpecs | tojson | safe }};
     var fileInput = "";
 
-     /**
-     * Initialize Bootstrap popovers when DOM is loaded
-     */
-    document.addEventListener('DOMContentLoaded', function() {
-        var popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'));
-        var popoverList = popoverTriggerList.map(function (popoverTriggerEl) {
-            return new bootstrap.Popover(popoverTriggerEl);
-        });
-    });
-
     // Initialize the form with existing device specifications
     document.addEventListener("DOMContentLoaded", function () {
         Object.entries(deviceSpecs).forEach(([key, value]) => {
@@ -226,75 +220,101 @@
      * @param {string} selectedValue - The pre-selected specification value
      */
     function addItem(selectedName, selectedValue) {
-        const formBody = document.getElementById('allSpecs');
+    const formBody = document.getElementById('allSpecs');
 
-        const newSpec = document.createElement('div');
-        newSpec.id = "newItem" + counter;
-        newSpec.classList.add("input-group", "mb-3", "w-75");
+    const newSpec = document.createElement('div');
+    newSpec.id = "newItem" + counter;
+    newSpec.classList.add("input-group", "mb-3", "w-75");
 
-        // Create first select (specification category)
-        const firstSelect = document.createElement("select");
-        firstSelect.name = "itemName" + counter;
-        firstSelect.classList.add("form-select");
+    const firstSelect = document.createElement("select");
+    firstSelect.name = "itemName" + counter;
+    firstSelect.classList.add("form-select");
 
-        if (specList.length > 0) {
-            specList.forEach(spec => {
-                const option = document.createElement("option");
-                console.log(selectedName)
-                option.value = spec.name;
-                option.textContent = spec.name;
-                if (spec.name === selectedName) {
-                    option.selected = true;
-                }
-                firstSelect.appendChild(option);
-            });
-        } else {
+    const secondSelect = document.createElement("select");
+    secondSelect.name = "itemValue" + counter;
+    secondSelect.classList.add("form-select");
+
+    let selectedSpec = specList.find(spec => spec.name === selectedName);
+    const specExists = !!selectedSpec;
+
+    // --- Spec category dropdown ---
+    if (specList.length > 0) {
+        specList.forEach(spec => {
             const option = document.createElement("option");
-            option.textContent = "Brak dostępnych specyfikacji";
+            option.value = spec.name;
+            option.textContent = spec.name;
+            if (spec.name === selectedName) option.selected = true;
             firstSelect.appendChild(option);
-        }
-
-        // Create second select (specification values)
-        const secondSelect = document.createElement("select");
-        secondSelect.name = "itemValue" + counter;
-        secondSelect.classList.add("form-select");
-
-        // Update values when category changes
-        firstSelect.addEventListener("change", function () {
-            const selectedSpec = specList.find(spec => spec.name === firstSelect.value);
-            if (selectedSpec) {
-                secondSelect.innerHTML = selectedSpec.options.map(option => `<option>${option}</option>`).join("");
-            }
         });
 
-        // Set initial values if provided
-        if (selectedName) {
-            firstSelect.value = selectedName;
-            const selectedSpec = specList.find(spec => spec.name === selectedName);
-            if (selectedSpec) {
-                secondSelect.innerHTML = selectedSpec.options.map(option => `<option>${option}</option>`).join("");
+        // Add warning if the selected spec was deleted
+        if (selectedName && !specExists) {
+            const missingOption = document.createElement("option");
+            missingOption.value = selectedName;
+            missingOption.selected = true;
+            missingOption.disabled = true;
+            missingOption.innerHTML = `⚠️ ${selectedName} (usunięta)`;
+            firstSelect.appendChild(missingOption);
+        }
+    } else {
+        const option = document.createElement("option");
+        option.textContent = "Brak dostępnych specyfikacji";
+        firstSelect.appendChild(option);
+    }
+
+    // --- Values dropdown ---
+    const updateSecondSelect = () => {
+        const selected = specList.find(spec => spec.name === firstSelect.value);
+        secondSelect.innerHTML = "";
+
+        if (selected) {
+            selected.options.forEach(opt => {
+                const option = document.createElement("option");
+                option.textContent = opt;
+                option.value = opt;
+                secondSelect.appendChild(option);
+            });
+
+            if (selectedValue && !selected.options.includes(selectedValue)) {
+                const warningOption = document.createElement("option");
+                warningOption.value = selectedValue;
+                warningOption.selected = true;
+                warningOption.disabled = true;
+                warningOption.innerHTML = `⚠️︎ ${selectedValue} (usunięta)`;
+                secondSelect.appendChild(warningOption);
+            } else {
                 secondSelect.value = selectedValue;
             }
-        } else if (specList.length > 0) {
-            firstSelect.value = specList[0].name;
-            secondSelect.innerHTML = specList[0].options.map(option => `<option>${option}</option>`).join("");
+        } else {
+            const option = document.createElement("option");
+            option.textContent = "Brak opcji";
+            secondSelect.appendChild(option);
         }
+    };
 
-        // Create delete button
-        const deleteButton = document.createElement("button");
-        deleteButton.type = "button";
-        deleteButton.classList.add("btn", "btn-danger");
-        deleteButton.innerHTML = "<i class='bi bi-trash'></i>";
-        deleteButton.onclick = function () { deleteItem(newSpec.id); };
+    firstSelect.addEventListener("change", function () {
+        updateSecondSelect();
+    });
 
-        // Add elements to container
-        newSpec.appendChild(firstSelect);
-        newSpec.appendChild(secondSelect);
-        newSpec.appendChild(deleteButton);
+    // Init selects
+    updateSecondSelect();
 
-        formBody.appendChild(newSpec);
-        counter++;
-    }
+    const deleteButton = document.createElement("button");
+    deleteButton.type = "button";
+    deleteButton.classList.add("btn", "btn-danger");
+    deleteButton.innerHTML = "<i class='bi bi-trash'></i>";
+    deleteButton.onclick = function () {
+        deleteItem(newSpec.id);
+    };
+
+    newSpec.appendChild(firstSelect);
+    newSpec.appendChild(secondSelect);
+    newSpec.appendChild(deleteButton);
+
+    formBody.appendChild(newSpec);
+    counter++;
+}
+
 
     /**
      * Removes a specification item from the form
