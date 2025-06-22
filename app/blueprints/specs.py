@@ -2,6 +2,7 @@ from app import auth
 from app.models.specs import Spec
 from app.helpers import specs_utils as Utils
 from flask import render_template, Blueprint, request, redirect, url_for, flash
+from app.helpers.auth_utils import check_first_login
 
 from werkzeug.routing import ValidationError
 
@@ -9,7 +10,8 @@ specs_blueprint = Blueprint("specs", __name__)
 
 @specs_blueprint.route("/zarzadzaj", methods=['POST', 'GET'])
 @auth.login_required()
-def EditSpecs(*, context):
+@check_first_login
+def EditSpecs(*, context={"user": {"name": "Anonymous", "preffered_username": "Anonymous"}}):
     """
     Handle specification editing:
     - GET: Display all specifications for editing

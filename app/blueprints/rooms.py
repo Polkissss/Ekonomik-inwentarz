@@ -1,13 +1,16 @@
-from app import auth, db
+from app import auth
 from flask import Blueprint, render_template, request, redirect, url_for
 
 from app.models.rooms import Rooms
+from app.models.users import Users
+from app.helpers.auth_utils import check_first_login
 
 rooms_blueprint = Blueprint("rooms", __name__)
 
 @rooms_blueprint.route("/zarzadzaj", methods=['POST', 'GET'])
 @auth.login_required()
-def RoomList(*, context):
+@check_first_login
+def RoomList(*, context={"user": {"name": "Anonymous", "preffered_username": "Anonymous"}}):
     """
     Display and manage rooms:
     - GET: Show paginated list of rooms
@@ -18,6 +21,7 @@ def RoomList(*, context):
         for room in request.form:
             room_id = room[6:]
             Rooms.Edit(room_id, request.form.get(room))
+            Users.EditLastAction(context['user']['preferred_username'], "Edycja", request.form.get(room))
 
         return redirect(url_for("rooms.RoomList"))
 

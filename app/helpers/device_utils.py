@@ -3,7 +3,6 @@ import os
 from  datetime import datetime
 
 from barcode import Code128
-from app.models.rooms import Rooms
 
 # Define upload directories for device photos and barcodes
 UPLOAD_DEVICE_PHOTO = "app/static/images/device_photos"
@@ -12,6 +11,7 @@ os.makedirs(UPLOAD_DEVICE_PHOTO, exist_ok=True)  # Create directories if they do
 os.makedirs(UPLOAD_BARCODES, exist_ok=True)
 
 def ProcessData(data, user=None):
+    from app.models.rooms import Rooms
     if "_id" in data:
         data.pop("_id")
 

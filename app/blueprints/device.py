@@ -7,6 +7,8 @@ from werkzeug.routing import ValidationError
 from app.models.specs import Spec
 from app.models.device import Device
 from app.models.rooms import Rooms
+from app.models.users import Users
+from app.helpers.auth_utils import check_first_login
 
 import app.helpers.device_utils as Utils
 
@@ -17,7 +19,8 @@ device_blueprint = Blueprint("device", __name__)
 
 @device_blueprint.route("/dodaj", methods=['POST', 'GET'])
 @auth.login_required()
-def AddDevice(*, context):
+@check_first_login
+def AddDevice(*, context={"user": {"name": "Anonymous", "preferred_username": "Anonymous"}}):
     """
     Handle device addition:
     - GET: Display form with all specifications and rooms
@@ -33,6 +36,7 @@ def AddDevice(*, context):
         # Insert new device into database
         try:
             addedDevice = Device.Create(processedData)
+            Users.EditLastAction(context['user']['preferred_username'], "Utworzenie", processedData["ID"])
         except ValidationError as e:
             flash(str(e), "danger")
             return redirect(url_for("device.AddDevice"))
@@ -58,7 +62,8 @@ def AddDevice(*, context):
 
 @device_blueprint.route("/edytuj", methods=['POST', 'GET'])
 @auth.login_required()
-def EditDevice(*, context):
+@check_first_login
+def EditDevice(*, context={"user": {"name": "Anonymous", "preferred_username": "Anonymous"}}):
     """
     Handle device editing:
     - GET: Display edit form for a specific device
@@ -71,6 +76,7 @@ def EditDevice(*, context):
         if request.form.get("delete"):
             device_id = request.form["delete"]
             Device.DeleteBy_ID(device_id)
+            Users.EditLastAction(context['user']['preferred_username'], "Usunięto", device_id)
 
             # Remove associated files
             Utils.DeleteFiles(device_id)
@@ -79,11 +85,12 @@ def EditDevice(*, context):
         # Process device updates
         deviceData = request.form.to_dict()
         deviceId = deviceData["_id"]
-        data = Utils.ProcessData(deviceData)
+        data = Utils.ProcessData(deviceData, context['user']['preferred_username'])
 
         # Update device in database
         try:
             Device.Edit(deviceId, data)
+            Users.EditLastAction(context['user']['preferred_username'], "Edycja", data['ID'])
         except ValidationError as e:
             flash(str(e), "danger")
             return redirect(url_for("device.EditDevice") + f"?&deviceID={data["ID"]}")
@@ -121,7 +128,8 @@ def EditDevice(*, context):
 
 @device_blueprint.route("/lista", methods=['POST', 'GET'])
 @auth.login_required()
-def ListDevices(*, context):
+@check_first_login
+def ListDevices(*, context={"user": {"name": "Anonymous", "preferred_username": "Anonymous"}}):
     """
     Display paginated list of devices with filtering capabilities:
     - Filter by room name

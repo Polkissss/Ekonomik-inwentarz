@@ -6,7 +6,7 @@ class Users(BaseModel):
     @classmethod
     def Create(cls, name, permission=False, lastLogin=datetime.now()):
         if not cls._collection.find_one({"name": name}):
-            return cls._collection.create_one({
+            return cls._collection.insert_one({
                 "name": name,
                 "last_login": lastLogin,
                 "permission": permission,

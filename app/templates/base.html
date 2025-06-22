@@ -51,9 +51,9 @@
             <li class="nav-item">
               <a class="nav-link fw-bold" href="{{url_for('rooms.RoomList')}}">Pomieszczenia</a>
             </li>
-<!--            <li class="nav-item">-->
-<!--              <a class="nav-link fw-bold" href="">Użytkownicy</a>-->
-<!--            </li>-->
+            <li class="nav-item">
+              <a class="nav-link fw-bold" href="{{url_for('users.ManageUsers')}}">Użytkownicy</a>
+            </li>
           </ul>
 
           <!-- Search form for devices -->
@@ -66,9 +66,9 @@
           </form>
 
           <!-- User info and logout button -->
-          <form class="d-flex pe-2" role="search" action="{{url_for('auth.Logout')}}">
+          <form class="d-flex pe-2" action="{{url_for('auth.Logout')}}" method="post">
             <a class="navbar-text me-2 fw-bold text-decoration-none text-white">{{username}}</a>
-            <button class="btn btn-outline-danger fw-bold align-end" type="submit">Wyloguj</button>
+            <button class="btn btn-outline-danger fw-bold align-end" type="submit" {% if username == 'Anonymous' %} disabled {% endif %}>Wyloguj</button>
           </form>
         </div>
       </div>
