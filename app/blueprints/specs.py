@@ -32,7 +32,6 @@ def EditSpecs(*, context={"user": {"name": "Anonymous", "preffered_username": "A
             for spec in request.form:
                 # Handle new specifications
                 if spec[:7] == "newName":
-                    print("Nowa nazwa")
                     item_id = spec[7:]
                     currentName = request.form.get(spec)
                     optionsList = Utils.ParseToList(request.form.get("newOptions" + item_id))

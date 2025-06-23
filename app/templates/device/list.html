@@ -29,15 +29,15 @@
                     <tbody class="table-group-divider">
                         {% for device in devices %}
                         <tr>
-                            <td>{{ device.ID }}</td>
-                            <td>{{ device.name }}</td>
+                            <td class="text-break">{{ device.ID }}</td>
+                            <td class="text-break">{{ device.name }}</td>
                             <td>
                                 <img id="selectedImage" src="{{ url_for('static', filename='images/device_photos/device' + device._id + '.png') }}"
                                      onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/placeholder.png') }}';"
                                      alt="Brak obrazu" class="img-fluid" style="height: 63px;" />
                             </td>
                             <td>{{ device.room.name }}</td>
-                            <td>{% if device.room.keeper != "brak" and device.room.keeper %}{{device.room.keeper}}{% else %}Bez podanego pracownika{% endif %}</td>
+                            <td class="text-break">{% if device.room.keeper != "brak" and device.room.keeper %}{{device.room.keeper}}{% else %}Bez podanego pracownika{% endif %}</td>
                             <td>{% if device.private == "True" %}Tak{% else %}Nie{% endif %}</td>
                             <td>
                                 <form action="/urzadzenie/edytuj" method="get">

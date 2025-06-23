@@ -1,182 +1,180 @@
 {% extends "/base.html" %}
 
 {% block content %}
+<div class="container-fluid mt-4 px-4">  <!-- Added margin-top and padding-x for spacing -->
+    <div class="row flex-column flex-lg-row g-4"> <!-- g-4 adds spacing between columns -->
 
-<div class="container-fluid">
-    <div class="row">
-    <!-- Main container for user management -->
-    <div class="col-xl-7 col-lg-8 col-md-12 col-sm-12 shadow border border-light-subtle rounded text-center pt-2 mx-auto mb-3" style="height: 800px;">
-        <!-- Page header -->
-        <h1 class="mt-2"><b><i class="bi bi-person"></i> Użytkownicy</b></h1>
-        <p class="px-3">
-            Użytkownicy zostają tutaj dodani automatycznie przy pierwszym logowaniu, gdy filtracja jest wyłąćzona. <br>
-            Kiedy filtracja jest włączona użytkownicy mogą się zalgowac TYLKO gdy są już zapisani w bazie i TYLKO gdy mają do tego uprawnienia.<br>
-            Zawarty jest tutaj także szybki dostęp do podstawowych informacji takich jak pierwsze logowaniu czy ostatnia aktywność.
-        </p>
+        <!-- Left column (User Management Table) -->
+        <div class="col-12 col-lg-7 shadow border border-light-subtle rounded p-4 mx-auto text-center" style="min-height: 85vh;">
+            <h1 class="mb-3"><b><i class="bi bi-person"></i> Użytkownicy</b></h1>
+            <p class="mb-4">
+                Użytkownicy zostają tutaj dodani automatycznie przy pierwszym logowaniu, gdy filtracja jest wyłączona. <br>
+                Gdy filtracja jest włączona, mogą się zalogować TYLKO gdy są już zapisani w bazie i mają do tego uprawnienia.<br>
+                Znajdziesz tu informacje o pierwszym logowaniu i ostatniej aktywności.
+            </p>
 
-        <!-- Main form for user management -->
-        <form method="post">
-            <!-- Scrollable table container -->
-            <div class="table-responsive overflow-auto" style="height: 570px;">
-                <table class="table table-sm text-wrap align-middle">
-                    <thead class="table-light">
-                        <tr>
-                            <th scope="col" style="width: 5%">Dostęp</th>
-                            <th scope="col" style="width: 35%">Adres</th>
-                            <th scope="col" style="width: 15%">Ostatnie logowanie</th>
-                            <th scope="col" style="width: 15%">Ostatnia akcja</th>
-                            <th scope="col" style="width: 20%">Przedmiot akcji</th>
-                            <th scope="col" style="width: 10%">Akcje</th>
-                        </tr>
-                    </thead>
-                    <tbody class="table-group-divider">
-                        <!-- Loop through existing users -->
-                        <tr>
-                            <td style="width: 5%"><input class="form-check-input" type="checkbox" value=""></td>
-                            <td style="width: 35%"><b>pkrzastek@ekonomik.gniezno.pl</b></td>
-                            <td style="width: 15%">19.04.2005</td>
-                            <td style="width: 15%">15.04.2005</td>
-                            <td style="width: 20%">Edycja: Monitor_2</td>
-                            <td style="width: 10%">
-                                <button class="btn btn-success"><i class="bi bi-floppy"></i></button>
-                                <button class="btn btn-danger "><i class="bi bi-trash"></i></button>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
+            <form method="post">
+                <div class="table-responsive mb-3" style="height: 60vh;">
+                    <table class="table table-sm table-bordered align-middle text-wrap">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="text-nowrap">Dostęp</th>
+                                <th>Adres</th>
+                                <th class="text-nowrap">Ostatnie logowanie</th>
+                                <th class="text-nowrap">Ostatnia akcja</th>
+                                <th>Przedmiot akcji</th>
+                                <th>Akcje</th>
+                            </tr>
+                        </thead>
+                        <tbody class="table-group-divider">
+                            {% for user in users %}
+                            <tr>
+                                <form method="post" action="{{ url_for('users.ManageUsers') }}">
+                                <td><input class="form-check-input" name="permission{{user._id}}" {% if user.name == currentUser or currentUser == 'Anonymous' %} disabled {% endif %} type="checkbox"{% if user.permission %} checked {% endif %}></td>
+                                <td><b>{{ user.name }}</b></td>
+                                <td>{{ user.last_login }}</td>
+                                <td>{{ user.last_action }}</td>
+                                <td class="text-break">{{ user.action_item }}</td>
+                                <td style="white-space: nowrap;">
+                                    <button class="btn btn-success" {% if user.name == currentUser or currentUser == 'Anonymous' or not currentPriviledge %} disabled {% endif %} name="updateSingleUser" value="{{ user._id }}"><i class="bi bi-floppy"></i></button>
+                                    <button type="button" class="btn btn-danger" {% if user.name == currentUser or currentUser == 'Anonymous' or not currentPriviledge %} disabled {% endif %} data-bs-toggle="modal" data-bs-target="#deleteConfirm" data-bs-name="{{user.name}}" data-bs-identifier="{{user._id}}"><i class="bi bi-trash"></i></button>
+                                </td>
+                                </form>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
 
-                <!-- Display message if no users found -->
-                {% if not users %}
-                <div id="infoMissing" class="d-flex justify-content-center align-items-center" style="height: 500px; overflow-y: auto;">
-                    <h3 class="d-flex alert alert-danger h-25 w-75 align-items-center justify-content-center">Brak uprawnionych adresów</h3>
+                    {% if not users %}
+                    <div id="infoMissing" class="d-flex justify-content-center align-items-center py-5">
+                        <h3 class="alert alert-danger text-center w-75">
+                            Brak adresów. Taka sytuacja nie powinna wystąpić, chyba że opcja logowania jest wyłączona.
+                            Jeśli widzisz to po zalogowaniu – skontaktuj się z administratorem.
+                        </h3>
+                    </div>
+                    {% endif %}
                 </div>
-                {% endif %}
-            </div>
 
-            <!-- Action buttons -->
-            <div class="d-flex justify-content-center align-items-center gap-2 mt-2 mb-2">
-                <!-- Add new user button -->
-                <button type="button" id="addRowBtn" class="btn btn-primary">Dodaj</button>
+                <div class="d-flex flex-column flex-md-row justify-content-center align-items-center gap-3 mt-3">
+<!--                    <button type="submit" name="saveAllSpecs" value="1" {% if currentUser == 'Anonymous' %} disabled {% endif %} class="btn btn-success">Zapisz wszystko</button>-->
 
-                <!-- Save all button -->
-                <button type="submit" name="saveAllSpecs" value="1" class="btn btn-success">Zapisz wszystko</button>
+                    <button type="button" data-bs-toggle="modal" data-bs-target="#toggleFilter" {% if not currentPriviledge %} disabled {% endif %} class="btn btn-danger">Przełącz filtracje</button>
 
-                <!-- Permission toggle -->
-                {% if not users %}
-                    <div class="input-group w-25 h-100">
-                        <div class="input-group-text">
-                            <input class="form-check-input mt-0" name="status" type="checkbox" checked disabled>
-                        </div>
-                        <input type="text" class="form-control" aria-label="Text input with checkbox"
-                               value="Ignoruj uprawnienia" disabled>
-                    </div>
-                {% elif status.ignore == "True" %}
-                    <div class="input-group w-25 h-100">
-                        <div class="input-group-text">
-                            <input class="form-check-input mt-0" name="status" type="checkbox" checked>
-                        </div>
-                        <input type="text" class="form-control" aria-label="Text input with checkbox"
-                               value="Ignoruj uprawnienia" disabled>
-                    </div>
-                {% else %}
-                    <div class="input-group w-25 h-100">
-                        <div class="input-group-text">
-                            <input class="form-check-input mt-0" name="status" type="checkbox">
-                        </div>
-                        <input type="text" class="form-control" aria-label="Text input with checkbox"
-                               value="Ignoruj uprawnienia" disabled>
-                    </div>
-                {% endif %}
-
-            </div>
-        </form>
+                    {% if filterState %}
+                        <span class="badge bg-success">OBECNIE JEST WŁĄCZONA</span>
+                    {% else %}
+                        <span class="badge bg-secondary">OBECNIE JEST WYŁĄCZONA</span>
+                    {% endif %}
+                </div>
+            </form>
         </div>
-        <div class="col-xl-4 col-lg-4 col-md-12 col-sm-12 shadow border border-light-subtle rounded text-center pt-2 mx-auto" style="height: 800px;">
-            <h1 class="mt-2"><b>Dodaj użytkonika ręcznie</b></h1>
+
+        <!-- Right column (Add User Form) -->
+        <div class="col-12 col-lg-3 shadow border border-light-subtle rounded p-4 mx-auto text-center" style="min-height: 85vh;">
+            <h1 class="mb-3"><b>Dodaj użytkownika ręcznie</b></h1>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            <div class="d-flex flex-column align-items-center">
+                {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show mt-2 mx-auto text-center" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Zamknij"></button>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+            {% endwith %}
+
+            <p class="mb-4">
+                Dodaj użytkownika bez konieczności logowania po raz pierwszy. Użyteczne, gdy filtracja jest włączona.
+            </p>
+
+            <form method="post" action="{{url_for('users.ManageUsers')}}">
+                <div class="mb-3 text-start">
+                    <label for="name" class="form-label">Adres użytkownika:</label>
+                    <div class="input-group">
+                        <input type="text" id="name" name="newName" class="form-control" placeholder="Adres" required>
+                        <span class="input-group-text">@ekonomik.gniezno.pl</span>
+                    </div>
+                </div>
+
+                <div class="form-check mb-4 text-start">
+                    <input class="form-check-input" type="checkbox" name="newPermission" id="defaultCheck1">
+                    <label class="form-check-label" for="defaultCheck1">
+                        Uprawniony do aplikacji
+                    </label>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100" name="addUser" value="1" {% if not currentPriviledge %} disabled {% endif %}>Dodaj użytkownika</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal for toggling filter -->
+<div class="modal fade" id="toggleFilter" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="toggleFilterLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="toggleFilterLabel">Zmiana statusu</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Zamknij"></button>
+            </div>
+            <div class="modal-body">
+                Czy jesteś pewien, że chcesz zmienić status filtracji?
+            </div>
+            <div class="modal-footer justify-content-around">
+                <form method="post" action="{{ url_for('users.ManageUsers') }}" class="d-flex w-100">
+                    <button type="button" class="btn btn-danger w-25 mx-auto" data-bs-dismiss="modal">Nie</button>
+                    <button type="submit" class="btn btn-success w-25 mx-auto" name="toggleFilterState" value="1">Tak</button>
+                </form>
+            </div>
         </div>
     </div>
 </div>
 
-    <!-- Delete confirmation modal -->
-    <div class="modal fade" id="deleteConfirm" data-bs-backdrop="static" data-bs-keyboard="false"
-         tabindex="-1" aria-labelledby="deleteLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h1 class="modal-title fs-5" id="deleteLabel">Usuwanie</h1>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <p id="modal-message"></p>
-                </div>
-                <div class="d-flex modal-footer justify-content-center">
-                    <form method="post" class="d-flex w-100">
-                        <button type="button" class="btn btn-danger w-25 mx-auto" data-bs-dismiss="modal">Nie</button>
-                        <button type="submit" class="btn btn-success w-25 mx-auto"
-                                id="modalConfirmButton" name="delete" value="">Tak</button>
-                    </form>
-                </div>
+<!-- Modal for deleting user -->
+<div class="modal fade" id="deleteConfirm" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="toggleFilterLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="deleteConfirmLabel">Potwierdzenie usunięcia</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Zamknij"></button>
+            </div>
+            <div class="modal-body" id="modal-message">
+
+            </div>
+            <div class="modal-footer">
+                <form method="post" action="{{ url_for('users.ManageUsers') }}" class="d-flex w-100">
+                    <button type="button" class="btn btn-danger w-25 mx-auto" data-bs-dismiss="modal">Nie</button>
+                    <button type="submit" class="btn btn-success w-25 mx-auto" name="deleteUser" id="modalConfirmButton" value="">
+                        Tak
+                    </button>
+                </form>
             </div>
         </div>
     </div>
 </div>
+
 
 <script>
-    // Counter for new user rows
-    var counter = 1;
-
-    // Delete confirmation modal setup
-    const exampleModal = document.getElementById('deleteConfirm')
+    document.addEventListener('DOMContentLoaded', function () {
+    const exampleModal = document.getElementById('deleteConfirm');
     if (exampleModal) {
       exampleModal.addEventListener('show.bs.modal', event => {
-        const button = event.relatedTarget
-        const name = button.getAttribute('data-bs-name')
-        const id = button.getAttribute('data-bs-identifier')
+        const button = event.relatedTarget;
+        const name = button.getAttribute('data-bs-name');
+        const id = button.getAttribute('data-bs-identifier');
 
         // Update modal content
-        const modalBody = exampleModal.querySelector('#modal-message')
-        const modalConfirm = exampleModal.querySelector('#modalConfirmButton')
+        const modalBody = exampleModal.querySelector('#modal-message');
+        const modalConfirm = exampleModal.querySelector('#modalConfirmButton');
 
-        modalBody.innerHTML = `Czy jesteś pewien, że chcesz usunąć użytkownika o adresie: ${name}`
-        modalConfirm.value = `${id}`
-      })
+        modalBody.innerText = `Czy jesteś pewien, że chcesz usunąć użytkownika o adresie: ${name}`;
+        modalConfirm.value = id;
+      });
     }
-
-    // Add new user row
-    document.getElementById('addRowBtn').addEventListener('click', function() {
-        const tableBody = document.querySelector('#specsTable tbody');
-
-        // Create new row
-        const newRow = document.createElement('tr');
-        newRow.innerHTML = `
-            <td scope="row" class="align-middle" style="width: 95%">
-                <div class="input-group">
-                    <input type="text" class="form-control" name="newAddress${counter}" placeholder="Nowy adres">
-                </div>
-            </td>
-            <td class="align-middle" style="width:5%">
-                <button type="button" class="btn btn-danger removeRowBtn"><i class="bi bi-trash"></i></button>
-            </td>
-        `;
-
-        // Add row to table
-        tableBody.appendChild(newRow);
-
-        // Hide "no users" message if present
-        const message = document.getElementById('infoMissing');
-        if (message) {
-            message.classList.add("d-none");
-        }
-
-        counter++;
-    });
-
-    // Remove row handler
-    document.querySelector('#specsTable').addEventListener('click', function(event) {
-        if (event.target.classList.contains('removeRowBtn')) {
-            event.target.closest('tr').remove();
-        }
-    });
+  });
 </script>
 
 {% endblock %}

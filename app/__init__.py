@@ -39,7 +39,8 @@ app.register_blueprint(users.users_blueprint, url_prefix='/uzytkownicy')
 
 # Initialize settings in database especially important during first run
 from app.models.settings import Settings
-Settings.UpdateFilter(False)
+if not Settings.Find({"name": "user_filtration"}):
+        Settings.UpdateFilter(False)
 
 # Reditect users to the main page on empty route
 @app.route("/")

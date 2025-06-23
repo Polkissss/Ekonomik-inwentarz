@@ -75,8 +75,8 @@ def EditDevice(*, context={"user": {"name": "Anonymous", "preferred_username": "
         # Handle device deletion
         if request.form.get("delete"):
             device_id = request.form["delete"]
-            Device.DeleteBy_ID(device_id)
-            Users.EditLastAction(context['user']['preferred_username'], "Usunięto", device_id)
+            deletedDevice = Device.DeleteBy_ID(device_id)
+            Users.EditLastAction(context['user']['preferred_username'], "Usunięto", deletedDevice["ID"])
 
             # Remove associated files
             Utils.DeleteFiles(device_id)

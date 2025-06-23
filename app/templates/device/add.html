@@ -86,13 +86,13 @@
     <!-- Action buttons -->
     <div class="d-flex justify-content-center gap-2 mt-2 mb-3">
         <button class="btn btn-primary" type="button" onclick="addItem()">Dodaj informacje</button>
-        <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#staticBackdrop">
+        <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#save">
             Zapisz
         </button>
     </div>
 
     <!-- Confirmation modal -->
-    <div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false"
+    <div class="modal fade" id="save" data-bs-backdrop="static" data-bs-keyboard="false"
          tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
@@ -100,7 +100,7 @@
                     <h1 class="modal-title fs-5" id="staticBackdropLabel">Zapis</h1>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body">
+                <div class="modal-body text-break">
                     Czy jesteś pewien, że chcesz dodać urządzenie do bazy?
                 </div>
                 <div class="d-flex modal-footer justify-content-center">

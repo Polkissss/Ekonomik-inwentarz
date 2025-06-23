@@ -1,4 +1,4 @@
-from .base import BaseModel, mDB, datetime
+from .base import BaseModel, mDB, datetime, ValidationError
 
 class Users(BaseModel):
     _collection = mDB.db.users
@@ -14,7 +14,7 @@ class Users(BaseModel):
                 "action_item": "Brak"
             })
         else:
-            print("error")
+            raise ValidationError(f"Nazwa: {name} już istnieje w bazie.")
 
     @classmethod
     def EditLastLogin(cls, name):
