@@ -1,7 +1,6 @@
 from flask import Flask, redirect, url_for
 from flask_pymongo import PyMongo
 from app.helpers.auth_utils import ModifiedAuth
-from identity.flask import Auth
 
 from .config import *
 
@@ -39,8 +38,8 @@ app.register_blueprint(users.users_blueprint, url_prefix='/uzytkownicy')
 
 # Initialize settings in database especially important during first run
 from app.models.settings import Settings
-if not Settings.Find({"name": "user_filtration"}):
-        Settings.UpdateFilter(False)
+# if not Settings.Find({"name": "user_filtration"}):
+Settings.UpdateFilter(False)
 
 # Reditect users to the main page on empty route
 @app.route("/")
