@@ -1,8 +1,9 @@
 import json
 import os
+import barcode
 from  datetime import datetime
 
-from barcode import Code128
+Code128 = barcode.get_barcode_class('code128')
 
 # Define upload directories for device photos and barcodes
 UPLOAD_DEVICE_PHOTO = "app/static/images/device_photos"
