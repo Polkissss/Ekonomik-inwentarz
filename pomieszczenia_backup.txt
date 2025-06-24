@@ -1,4 +1,4 @@
-  {"name": "brak"}
+  {"name": "brak"},
   {"name": "kor0", "floor": "suterena" },
   { "name": "1", "floor": "suterena" },
   { "name": "2", "floor": "suterena" },

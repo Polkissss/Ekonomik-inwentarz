@@ -20,8 +20,7 @@ def RoomList(*, context={"user": {"name": "Anonymous", "preffered_username": "An
         # Update room keepers from form
         for room in request.form:
             room_id = room[6:]
-            Rooms.Edit(room_id, request.form.get(room))
-            Users.EditLastAction(context['user']['preferred_username'], "Edycja", request.form.get(room))
+            editedRoom = Rooms.Edit(room_id, request.form.get(room))
 
         return redirect(url_for("rooms.RoomList"))
 

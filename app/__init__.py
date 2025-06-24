@@ -23,7 +23,7 @@ auth = ModifiedAuth(
 )
 
 # Initialize MongoDB
-mDB = PyMongo(ssl=True, ssl_cert_reqs='CERT_NONE')
+mDB = PyMongo()
 mDB.init_app(app)
 db = mDB.db
 

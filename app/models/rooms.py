@@ -13,4 +13,5 @@ class Rooms(BaseModel):
         )
         updatedRoom = dict(updatedRoom)
         updatedRoom.pop("_id")
-        return Device.EditRoomKeeper(updatedRoom)
+        Device.EditRoomKeeper(updatedRoom)
+        return updatedRoom

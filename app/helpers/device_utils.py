@@ -18,11 +18,8 @@ def ProcessData(data, user=None):
 
     data["specs"] = json.loads(data["specs"])
 
-    if data["room"] == "brak":
-        data["room"] = {"name": "brak"}
-    else:
-        roomData = Rooms.FindOne({"name": data["room"]}, {"_id": 0})
-        data["room"] = roomData
+    roomData = Rooms.FindOne({"name": data["room"]}, {"_id": 0})
+    data["room"] = roomData
 
     if user:
         data["last_user"] = user
