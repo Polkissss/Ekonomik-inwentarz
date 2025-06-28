@@ -9,8 +9,7 @@ Code128 = barcode.get_barcode_class('code128')
 # Define upload directories for device photos and barcodes
 UPLOAD_DEVICE_PHOTO = "device_photos/"
 UPLOAD_BARCODES = "barcodes/"
-os.makedirs(UPLOAD_DEVICE_PHOTO, exist_ok=True)  # Create directories if they don't exist
-os.makedirs(UPLOAD_BARCODES, exist_ok=True)
+os.makedirs("app/static/images/barcodes", exist_ok=True)
 
 def ProcessData(data, user=None):
     from app.models.rooms import Rooms
