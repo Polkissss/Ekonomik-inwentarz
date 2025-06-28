@@ -1,8 +1,10 @@
 from flask import Flask, redirect, url_for
 from flask_pymongo import PyMongo
 from app.helpers.auth_utils import ModifiedAuth
+import boto3
 
 from .config import *
+from .config.AWS_settings import AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY
 
 # Initialize Flask app
 app = Flask(__name__)
@@ -11,6 +13,16 @@ app = Flask(__name__)
 app.config["SESSION_TYPE"] = settings.SESSION_TYPE
 app.config["SECRET_KEY"] = settings.SECRET_KEY
 app.config["MONGO_URI"] = mongo_settings.MONGO_URI
+
+# set up AWS S3 service object
+s3 = boto3.client(
+    's3',
+    region_name="eu-north-1",
+    aws_access_key_id=AWS_ACCESS_KEY_ID,
+    aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
+)
+
+print
 
 # Set up the authentication
 auth = ModifiedAuth(

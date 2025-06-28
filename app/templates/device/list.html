@@ -32,7 +32,7 @@
                             <td class="text-break">{{ device.ID }}</td>
                             <td class="text-break">{{ device.name }}</td>
                             <td>
-                                <img id="selectedImage" src="{{ url_for('static', filename='images/device_photos/device' + device._id + '.png') }}"
+                                <img id="selectedImage" src="https://ekonomik-inwentarz.s3.eu-north-1.amazonaws.com/device_photos/device{{device._id}}.png"
                                      onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/placeholder.png') }}';"
                                      alt="Brak obrazu" class="img-fluid" style="height: 63px;" />
                             </td>

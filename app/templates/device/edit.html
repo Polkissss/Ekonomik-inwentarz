@@ -25,7 +25,7 @@
     <div class="row mt-3 float-none">
         <!-- Left column with device image. If it doesn't exist display a placeholder -->
         <div class="col-md-6 col-12 d-flex justify-content-center align-items-center">
-                <img id="selectedImage" src="{{ url_for('static', filename='images/device_photos/device' + editedDevice._id + '.png') }}"
+                <img id="selectedImage" src="https://ekonomik-inwentarz.s3.eu-north-1.amazonaws.com/device_photos/device{{editedDevice._id}}.png"
                      onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/placeholder.png') }}';"
                      alt="obraz urządzenia" class="img-fluid" style="max-width: 50%;" />
         </div>
@@ -69,14 +69,8 @@
                     </label>
                 </div>
 
-                    <a href="{{ url_for('static', filename='images/bar_codes/barcode' + editedDevice._id + '.svg') }}"
-                       target="_blank"
+                    <a href="https://ekonomik-inwentarz.s3.eu-north-1.amazonaws.com/barcodes/barcode{{editedDevice._id}}.svg"
                        class="btn btn-success btn-rounded px-3 py-2">
-                       Otwórz kod
-                    </a>
-
-                    <a href="{{ url_for('static', filename='images/bar_codes/barcode' + editedDevice._id + '.svg') }}"
-                       class="btn btn-success btn-rounded px-3 py-2" download="{{editedDevice.name}}">
                        Pobierz kod
                     </a>
             </div>

@@ -17,7 +17,6 @@ def Login(*, context):
 
     if Settings.GetFilterState():
         if not Users.FindOne({"name": context["user"]["preferred_username"]})["permission"]:
-            print("Ma sie wylogowac")
             session.clear()
             return redirect(url_for('auth.Logout'))
 
